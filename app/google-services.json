@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "353318630936",
+    "project_id": "cakeshop-2edcd",
+    "storage_bucket": "cakeshop-2edcd.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:353318630936:android:7a1e463fceb1cc5af3756d",
+        "android_client_info": {
+          "package_name": "com.pro.cakeshop"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBxBppSFAWvsEpN5CT4WAxV9Rov4OmA1lk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
