@@ -5,7 +5,7 @@ plugins {
 
 android {
     namespace = "com.pro.cakeshop"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.pro.cakeshop"
