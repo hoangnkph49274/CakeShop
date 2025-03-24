@@ -1,6 +1,8 @@
 package com.pro.cakeshop;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -20,5 +22,14 @@ public class MainActivity extends AppCompatActivity {
                 v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
                 return insets;
         });
+        final Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            @Override public void run() {
+
+                startActivity(new Intent(MainActivity.this, LoginActivity.class));
+                finish();
+            } }, 3000);
+
+
     }
 }

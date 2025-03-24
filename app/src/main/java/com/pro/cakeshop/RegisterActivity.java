@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -17,6 +18,7 @@ public class RegisterActivity extends AppCompatActivity {
     private Button btnRegister;
     private FirebaseAuth mAuth;
 
+    private LinearLayout layoutLogin;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -26,6 +28,11 @@ public class RegisterActivity extends AppCompatActivity {
         etPassword = findViewById(R.id.etPassword);
         btnRegister = findViewById(R.id.btnRegister);
         mAuth = FirebaseAuth.getInstance();
+        layoutLogin = findViewById(R.id.layout_login);
+
+        layoutLogin.setOnClickListener(v -> {
+            startActivity(new Intent(this, LoginActivity.class));
+        });
 
         btnRegister.setOnClickListener(v -> registerUser());
     }
