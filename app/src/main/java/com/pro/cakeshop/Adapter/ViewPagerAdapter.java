@@ -35,6 +35,6 @@ public class ViewPagerAdapter extends FragmentStateAdapter {
 
     @Override
     public int getItemCount() {
-        return 4; // Có 4 mục trong BottomNavigationView
+        return 4;
     }
 }

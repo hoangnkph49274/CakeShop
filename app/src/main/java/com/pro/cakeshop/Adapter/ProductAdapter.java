@@ -21,18 +21,13 @@ import java.util.Map;
 
 public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductViewHolder> {
     private List<Banh> productList;
-    private OnItemClickListener onItemClickListener;
     private Map<String, String> loaiMap = new HashMap<>();
 
 
-    public interface OnItemClickListener {
-        void onEditClick(Banh banh);
-        void onDeleteClick(Banh banh);
-    }
 
-    public ProductAdapter(List<Banh> productList, OnItemClickListener listener) {
+
+    public ProductAdapter(List<Banh> productList) {
         this.productList = productList;
-        this.onItemClickListener = listener;
         fetchLoaiData();
     }
 
@@ -73,8 +68,7 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
         holder.tvCategory.setText(loaiMap.getOrDefault(banh.getMaLoai(), "Không xác định"));
         Glide.with(holder.itemView.getContext()).load(banh.getHinhAnh()).into(holder.imgProduct);
 
-        holder.imgEdit.setOnClickListener(v -> onItemClickListener.onEditClick(banh));
-        holder.imgDelete.setOnClickListener(v -> onItemClickListener.onDeleteClick(banh));
+
     }
 
     @Override
@@ -82,7 +76,7 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
         return productList.size();
     }
 
-    static class ProductViewHolder extends RecyclerView.ViewHolder {
+    public static class ProductViewHolder extends RecyclerView.ViewHolder {
         ImageView imgProduct, imgEdit, imgDelete;
         TextView tvName, tvPriceSale, tvCategory;
 

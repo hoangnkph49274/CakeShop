@@ -25,7 +25,7 @@ public class FirebaseHelper {
     public DatabaseReference getKhachHangReference() {
         return database.getReference("KhachHang");
     }
-
+ 
     // Tham chiếu đến bảng Lịch Sử Mua Hàng
     public DatabaseReference getLichSuMuaHangReference() {
         return database.getReference("LichSuMuaHang");
@@ -43,7 +43,7 @@ public class FirebaseHelper {
 
     // Tham chiếu đến bảng Bánh
     public DatabaseReference getBanhReference() {
-        return database.getReference("Banh");
+        return database.getReference("banh");
     }
 
     // Tham chiếu đến bảng Loại

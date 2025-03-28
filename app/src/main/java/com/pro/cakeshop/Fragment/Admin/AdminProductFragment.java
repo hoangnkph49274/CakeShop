@@ -4,6 +4,7 @@ package com.pro.cakeshop.Fragment.Admin;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -54,17 +55,7 @@ public class AdminProductFragment extends Fragment {
 
     private void setupRecyclerView() {
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        productAdapter = new ProductAdapter(productList, new ProductAdapter.OnItemClickListener() {
-            @Override
-            public void onEditClick(Banh banh) {
-                // Xử lý chỉnh sửa sản phẩm
-            }
-
-            @Override
-            public void onDeleteClick(Banh banh) {
-                // Xử lý xóa sản phẩm
-            }
-        });
+        productAdapter = new ProductAdapter(productList);
         recyclerView.setAdapter(productAdapter);
     }
 
@@ -73,6 +64,12 @@ public class AdminProductFragment extends Fragment {
         firebaseHelper.getListBanh(new FirebaseHelper.FirebaseCallback<List<Banh>>() {
             @Override
             public void onSuccess(List<Banh> result) {
+                if (result == null || result.isEmpty()) {
+                    Log.e("AdminProductFragment", "Danh sách bánh rỗng!");
+                } else {
+                    Log.d("AdminProductFragment", "Số lượng bánh: " + result.size());
+                }
+
                 productList.clear();
                 productList.addAll(result);
                 productAdapter.notifyDataSetChanged();
@@ -80,7 +77,7 @@ public class AdminProductFragment extends Fragment {
 
             @Override
             public void onFailure(String error) {
-                // Xử lý lỗi nếu có
+                Log.e("AdminProductFragment", "Lỗi khi lấy dữ liệu: " + error);
             }
         });
     }

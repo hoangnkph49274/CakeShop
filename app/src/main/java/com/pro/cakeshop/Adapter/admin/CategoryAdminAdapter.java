@@ -1,4 +1,4 @@
-package com.pro.cakeshop.adapter.admin;
+package com.pro.cakeshop.Adapter.admin;
 
 import android.app.AlertDialog;
 import android.text.InputType;
@@ -52,7 +52,7 @@ public class CategoryAdminAdapter extends RecyclerView.Adapter<CategoryAdminAdap
         notifyDataSetChanged();
     }
 
-    static class CategoryViewHolder extends RecyclerView.ViewHolder {
+    public static class CategoryViewHolder extends RecyclerView.ViewHolder {
         TextView tvName;
         ImageView imgEdit, imgDelete;
 

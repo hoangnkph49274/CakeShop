@@ -22,7 +22,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.pro.cakeshop.R;
-import com.pro.cakeshop.adapter.admin.CategoryAdminAdapter;
+import com.pro.cakeshop.Adapter.admin.CategoryAdminAdapter;
 import com.pro.cakeshop.Model.Loai;
 import java.util.ArrayList;
 import java.util.Collections;
