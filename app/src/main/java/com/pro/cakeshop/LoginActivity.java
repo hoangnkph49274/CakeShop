@@ -1,5 +1,7 @@
 package com.pro.cakeshop;
 
+import static android.os.Build.VERSION_CODES.R;
+
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
@@ -21,13 +23,13 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_login);
+        setContentView(com.pro.cakeshop.R.layout.activity_login);
 
-        etEmail = findViewById(R.id.etEmail);
-        etPassword = findViewById(R.id.etPassword);
-        btnLogin = findViewById(R.id.btnLogin);
+        etEmail = findViewById(com.pro.cakeshop.R.id.etEmail);
+        etPassword = findViewById(com.pro.cakeshop.R.id.etPassword);
+        btnLogin = findViewById(com.pro.cakeshop.R.id.btnLogin);
         mAuth = FirebaseAuth.getInstance();
-        layoutRegister = findViewById(R.id.layout_register);
+        layoutRegister = findViewById(com.pro.cakeshop.R.id.layout_register);
 
         layoutRegister.setOnClickListener(v -> {
             startActivity(new Intent(this, RegisterActivity.class));
