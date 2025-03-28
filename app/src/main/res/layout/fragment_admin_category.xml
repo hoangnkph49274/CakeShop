@@ -20,7 +20,7 @@
             android:layout_centerVertical="true"
             android:layout_toStartOf="@+id/img_search"
             android:background="@color/white"
-            android:hint="Tên sản phẩm..."
+            android:hint="@string/hint_search_category"
             android:imeOptions="actionSearch"
             android:inputType="text"
             android:padding="@dimen/define_dimen_6"
@@ -45,7 +45,6 @@
         android:layout_height="match_parent"
         android:layout_below="@+id/layout_search"
         android:layout_marginStart="@dimen/define_dimen_10"
-        android:layout_marginTop="12dp"
         android:layout_marginBottom="@dimen/define_dimen_10" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -59,4 +58,3 @@
         android:src="@android:drawable/ic_menu_add"
         tools:ignore="ContentDescription" />
 </RelativeLayout>
-
