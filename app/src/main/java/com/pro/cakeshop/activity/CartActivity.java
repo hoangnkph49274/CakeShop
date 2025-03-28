@@ -20,14 +20,16 @@ import com.pro.cakeshop.Model.GioHang;
 import com.pro.cakeshop.R;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class CartActivity extends AppCompatActivity {
     private DatabaseReference databaseReference;
     private RecyclerView recyclerView;
     private CartAdapter adapter;
     private List<GioHang> cartList;
-    private List<Banh> banhList;
+    private Map<String, Banh> banhMap;
     private TextView totalAmountTextView;
     private int totalAmount = 0;
     private String userId = "B002";  // Giả định ID khách hàng
@@ -42,7 +44,7 @@ public class CartActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
         cartList = new ArrayList<>();
-        banhList = new ArrayList<>();
+        banhMap = new HashMap<>();
 
         databaseReference = FirebaseDatabase.getInstance().getReference();
 
@@ -51,35 +53,35 @@ public class CartActivity extends AppCompatActivity {
 
     private void fetchCartItems() {
         databaseReference.child("gioHang").orderByChild("maKH").equalTo(userId)
-            .addListenerForSingleValueEvent(new ValueEventListener() {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot snapshot) {
-                    cartList.clear();
-                    for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                        GioHang item = dataSnapshot.getValue(GioHang.class);
-                        if (item != null) {
-                            cartList.add(item);
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        cartList.clear();
+                        for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                            GioHang item = dataSnapshot.getValue(GioHang.class);
+                            if (item != null) {
+                                cartList.add(item);
+                            }
                         }
+                        fetchCakeDetails();
                     }
-                    fetchCakeDetails();
-                }
 
-                @Override
-                public void onCancelled(@NonNull DatabaseError error) {
-                    Toast.makeText(CartActivity.this, "Lỗi: " + error.getMessage(), Toast.LENGTH_SHORT).show();
-                }
-            });
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        Toast.makeText(CartActivity.this, "Lỗi: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 
     private void fetchCakeDetails() {
         databaseReference.child("banh").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                banhList.clear();
+                banhMap.clear();
                 for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
                     Banh banh = dataSnapshot.getValue(Banh.class);
                     if (banh != null) {
-                        banhList.add(banh);
+                        banhMap.put(banh.getMaBanh(), banh);
                     }
                 }
                 updateCart();
@@ -93,15 +95,15 @@ public class CartActivity extends AppCompatActivity {
     }
 
     private void updateCart() {
+        totalAmount = 0;
         for (GioHang item : cartList) {
-            for (Banh banh : banhList) {
-                if (item.getMaBanh().equals(banh.getMaBanh())) {
-                    totalAmount += banh.getGia() * item.getSoLuong();
-                }
+            Banh banh = banhMap.get(item.getMaBanh());
+            if (banh != null) {
+                totalAmount += banh.getGia() * item.getSoLuong();
             }
         }
         totalAmountTextView.setText(totalAmount + " VND");
-        adapter = new CartAdapter(cartList, banhList, this);
+        adapter = new CartAdapter(cartList, new ArrayList<>(banhMap.values()), this);
         recyclerView.setAdapter(adapter);
     }
 }

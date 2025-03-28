@@ -80,16 +80,6 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/define_dimen_12">
 
-                    <TextView
-                        android:id="@+id/tv_description"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_centerVertical="true"
-                        android:layout_marginEnd="@dimen/define_dimen_10"
-                        android:layout_toStartOf="@+id/layout_count"
-                        android:text="@string/app_name"
-                        android:textColor="@color/textColorHeading"
-                        android:textSize="@dimen/text_size_small" />
 
                     <LinearLayout
                         android:id="@+id/layout_count"
@@ -191,12 +181,12 @@
                 android:padding="@dimen/define_dimen_10">
 
                 <TextView
+                    android:id="@+id/tv_description"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Thông tin chi tiết sản phẩm"
                     android:textColor="@color/textColorHeading"
-                    android:textSize="@dimen/text_size_xnormal"
-                    android:textStyle="bold" />
+                    android:textSize="@dimen/text_size_xnormal" />
 
                 <TextView
                     android:id="@+id/tv_info"

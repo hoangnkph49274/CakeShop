@@ -22,7 +22,7 @@
             android:label="@string/title_activity_admin_main"
             android:theme="@style/Theme.CakeShop" />
         <activity
-            android:name=".MainActivity"
+            android:name=".activity.ProductDetailActivity"
             android:exported="true" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

@@ -2,65 +2,124 @@ package com.pro.cakeshop.Fragment;
 
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
+import android.widget.Toast;
 
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+import com.pro.cakeshop.Adapter.CartAdapter;
+import com.pro.cakeshop.Model.Banh;
+import com.pro.cakeshop.Model.GioHang;
 import com.pro.cakeshop.R;
 
-/**
- * A simple {@link Fragment} subclass.
- * Use the {@link OrderFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
+import java.util.ArrayList;
+import java.util.List;
+
 public class OrderFragment extends Fragment {
 
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
+    private DatabaseReference databaseReference;
+    private RecyclerView recyclerView;
+    private CartAdapter adapter;
+    private List<GioHang> cartList;
+    private List<Banh> banhList;
+    private TextView totalAmountTextView;
+    private int totalAmount = 0;
+    private String userId = "B002";  // Giả định ID khách hàng
 
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
-
-    public OrderFragment() {
-        // Required empty public constructor
-    }
-
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment OrderFragment.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static OrderFragment newInstance(String param1, String param2) {
-        OrderFragment fragment = new OrderFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
-    }
-
+    @Nullable
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.fragment_order, container, false);
+
+        recyclerView = view.findViewById(R.id.rcv_cart);
+        totalAmountTextView = view.findViewById(R.id.tv_total);
+        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+
+        cartList = new ArrayList<>();
+        banhList = new ArrayList<>();
+
+        databaseReference = FirebaseDatabase.getInstance().getReference();
+
+        fetchCartItems();
+
+        return view;
+    }
+
+    private void fetchCartItems() {
+        databaseReference.child("gioHang").orderByChild("maKH").equalTo(userId)
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        cartList.clear();
+                        for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                            GioHang item = dataSnapshot.getValue(GioHang.class);
+                            if (item != null) {
+                                cartList.add(item);
+                            }
+                        }
+                        fetchCakeDetails();
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        Toast.makeText(getContext(), "Lỗi: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
+    private void fetchCakeDetails() {
+        databaseReference.child("banh").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                banhList.clear();
+                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                    Banh banh = dataSnapshot.getValue(Banh.class);
+                    if (banh != null) {
+                        banhList.add(banh);
+                    }
+                }
+                updateCart();
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(getContext(), "Lỗi: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void updateCart() {
+        totalAmount = 0; // Reset trước khi tính lại
+
+        for (GioHang item : cartList) {
+            for (Banh banh : banhList) {
+                if (item.getMaBanh().equals(banh.getMaBanh())) {
+                    totalAmount += banh.getGia() * item.getSoLuong();
+                }
+            }
         }
-    }
 
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_order, container, false);
+        if (totalAmountTextView == null) {
+            Log.e("UpdateCart", "totalAmountTextView is NULL!");
+            return;
+        }
+
+        totalAmountTextView.setText("Tổng Tiền: " + totalAmount + " VND");
+        adapter = new CartAdapter(cartList, banhList, getContext());
+        recyclerView.setAdapter(adapter);
     }
 }
+
