@@ -6,7 +6,7 @@ public class GioHang {
     private String maBanh;
     private int soLuong;
 
-    public GioHang() {}
+    public GioHang() { }
 
     public GioHang(String maGioHang, String maKH, String maBanh, int soLuong) {
         this.maGioHang = maGioHang;
@@ -16,14 +16,12 @@ public class GioHang {
     }
 
     public String getMaGioHang() { return maGioHang; }
-    public void setMaGioHang(String maGioHang) { this.maGioHang = maGioHang; }
-
     public String getMaKH() { return maKH; }
-    public void setMaKH(String maKH) { this.maKH = maKH; }
-
     public String getMaBanh() { return maBanh; }
-    public void setMaBanh(String maBanh) { this.maBanh = maBanh; }
-
     public int getSoLuong() { return soLuong; }
+
+    public void setMaGioHang(String maGioHang) { this.maGioHang = maGioHang; }
+    public void setMaKH(String maKH) { this.maKH = maKH; }
+    public void setMaBanh(String maBanh) { this.maBanh = maBanh; }
     public void setSoLuong(int soLuong) { this.soLuong = soLuong; }
 }
