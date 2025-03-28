@@ -1,10 +1,12 @@
 package com.pro.cakeshop.activity;
+
 import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-
 import com.bumptech.glide.Glide;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -16,41 +18,54 @@ import com.pro.cakeshop.R;
 
 public class ProductDetailActivity extends AppCompatActivity {
 
-    private TextView tvProductName;
-    private TextView tvProductDescription;
-    private TextView tvProductPrice;
+    private TextView tvProductName, tvProductDescription, tvProductPrice, tvCount, tvTotal;
     private ImageView ivProductImage;
-
+    private TextView tvSub, tvAdd;
     private FirebaseHelper firebaseHelper;
     private String productId;
+    private int quantity = 1;
+    private double price = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_product_detail); // Giả sử bạn có tệp bố cục tên là activity_product_detail.xml
+        setContentView(R.layout.activity_product_detail);
 
-        // Khởi tạo FirebaseHelper
         firebaseHelper = new FirebaseHelper();
+        productId = "1";
 
-        // Lấy ID sản phẩm từ Intent
-//        productId = getIntent().getStringExtra("productId");
-        productId = "B002"; // Gán giá trị ID cứng
-
-        // Khởi tạo các thành phần giao diện người dùng
         tvProductName = findViewById(R.id.tv_name);
         tvProductDescription = findViewById(R.id.tv_description);
         tvProductPrice = findViewById(R.id.tv_price_sale);
         ivProductImage = findViewById(R.id.img_product);
+        tvCount = findViewById(R.id.tv_count);
+        tvTotal = findViewById(R.id.tv_total);
+        tvSub = findViewById(R.id.tv_sub);
+        tvAdd = findViewById(R.id.tv_add);
 
-        // Kiểm tra xem ID sản phẩm có khác null và không rỗng không
         if (productId != null && !productId.isEmpty()) {
-            // Lấy chi tiết sản phẩm từ Firebase
             fetchProductDetails(productId);
         } else {
-            // Xử lý trường hợp ID sản phẩm không được cung cấp
             tvProductName.setText("Lỗi: Không tìm thấy ID sản phẩm");
-            // Bạn có thể muốn kết thúc hoạt động hoặc hiển thị thông báo lỗi
         }
+
+        tvSub.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (quantity > 1) {
+                    quantity--;
+                    updateQuantityAndTotal();
+                }
+            }
+        });
+
+        tvAdd.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                quantity++;
+                updateQuantityAndTotal();
+            }
+        });
     }
 
     private void fetchProductDetails(String productId) {
@@ -61,15 +76,18 @@ public class ProductDetailActivity extends AppCompatActivity {
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (snapshot.exists()) {
                     Banh banh = snapshot.getValue(Banh.class);
+                    Log.d("FirebaseData", "Dữ liệu sản phẩm: " + snapshot.getValue());
+
                     if (banh != null) {
-                        // Cập nhật giao diện người dùng với chi tiết sản phẩm
                         tvProductName.setText(banh.getTenBanh());
                         tvProductDescription.setText(banh.getMoTa());
-                        tvProductPrice.setText(String.format("%,.0f VNĐ", banh.getGia())); // Định dạng giá
+                        price = banh.getGia();
+                        tvProductPrice.setText(String.format("%,.0f VNĐ", price));
+                        updateQuantityAndTotal();
+
                         if (banh.getHinhAnh() != null && !banh.getHinhAnh().isEmpty()) {
                             Glide.with(ProductDetailActivity.this)
                                     .load(banh.getHinhAnh())
-
                                     .into(ivProductImage);
                         }
                     } else {
@@ -82,10 +100,14 @@ public class ProductDetailActivity extends AppCompatActivity {
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                tvProductName.setText("Lỗi: Không thể tải dữ liệu sản phẩm: " + error.getMessage());
-                // Ghi log lỗi để gỡ lỗi
-                // Log.e("ProductDetail", "Failed to load product", error.toException());
+                tvProductName.setText("Lỗi: " + error.getMessage());
             }
         });
+    }
+
+    private void updateQuantityAndTotal() {
+        tvCount.setText(String.valueOf(quantity));
+        double totalPrice = quantity * price;
+        tvTotal.setText(String.format("%,.0f VNĐ", totalPrice));
     }
 }
