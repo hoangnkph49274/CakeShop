@@ -82,12 +82,6 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/define_dimen_10">
 
-                <ImageView
-                    android:id="@+id/img_edit"
-                    android:layout_width="@dimen/define_dimen_24"
-                    android:layout_height="@dimen/define_dimen_24"
-                    android:layout_centerVertical="true"
-                    android:src="@drawable/ic_edit" />
 
                 <ImageView
                     android:id="@+id/img_delete"

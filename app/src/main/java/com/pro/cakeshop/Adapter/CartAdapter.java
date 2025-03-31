@@ -4,68 +4,115 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.pro.cakeshop.Model.Banh;
-import com.pro.cakeshop.Model.GioHang;
+import com.bumptech.glide.Glide;
+import com.pro.cakeshop.Model.GioHangItem;
 import com.pro.cakeshop.R;
 
 import java.util.List;
 
-public class CartAdapter extends RecyclerView.Adapter<CartAdapter.ViewHolder> {
-    private List<GioHang> cartList;
-    private List<Banh> banhList;
-    private Context context;
+public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartViewHolder> {
 
-    public CartAdapter(List<GioHang> cartList, List<Banh> banhList, Context context) {
-        this.cartList = cartList;
-        this.banhList = banhList;
+    private List<GioHangItem> cartItemList;
+    private Context context;
+    private CartItemListener listener;
+
+    public interface CartItemListener {
+        void onQuantityChanged(int position, int newQuantity);
+        void onItemRemoved(int position);
+    }
+
+    public CartAdapter(List<GioHangItem> cartItemList, Context context, CartItemListener listener) {
+        this.cartItemList = cartItemList;
         this.context = context;
+        this.listener = listener;
     }
 
     @NonNull
     @Override
-    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public CartViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_cart, parent, false);
-        return new ViewHolder(view);
+        return new CartViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        GioHang item = cartList.get(position);
-        for (Banh banh : banhList) {
-            if (item.getMaBanh().equals(banh.getMaBanh())) {
-                holder.txt.setText(banh.getTenBanh());
-                holder.txtPrice.setText(String.format("%,.0f VNĐ", banh.getGia())); // Format price
-                holder.txtQuantity.setText("x" + item.getSoLuong());
-                // You might want to load the image here if you have an ImageView in item_cart
-                // Glide.with(context).load(banh.getHinhAnh()).into(holder.imgProduct);
-                break; // Exit the loop once the matching Banh is found
-            }
+    public void onBindViewHolder(@NonNull CartViewHolder holder, int position) {
+        GioHangItem item = cartItemList.get(position);
+
+        holder.tvName.setText(item.getTenBanh());
+        holder.tvPrice.setText(String.format("%,d VND", item.getGia()));
+        holder.tvQuantity.setText(String.valueOf(item.getSoLuong()));
+
+        // Calculate and set total price for this item
+        int totalPrice = item.getGia() * item.getSoLuong();
+        holder.tvTotalPrice.setText(String.format("%,d VND", totalPrice));
+
+        // Load image using Glide if available
+        if (item.getHinhAnh() != null && !item.getHinhAnh().isEmpty()) {
+            Glide.with(context)
+                    .load(item.getHinhAnh())
+                    .placeholder(R.drawable.logo) // Replace with your placeholder drawable
+                    .error(R.drawable.ic_star_yellow) // Replace with your error drawable
+                    .into(holder.imgProduct);
+        } else {
+            holder.imgProduct.setImageResource(R.drawable.logo); // Replace with your placeholder drawable
         }
+
+        // Set click listeners for quantity buttons
+        holder.imgIncrease.setOnClickListener(v -> {
+            int newQuantity = item.getSoLuong() + 1;
+            if (listener != null) {
+                listener.onQuantityChanged(holder.getAdapterPosition(), newQuantity);
+            }
+        });
+
+        holder.imgDecrease.setOnClickListener(v -> {
+            int newQuantity = item.getSoLuong() - 1;
+            if (newQuantity <= 0) {
+                if (listener != null) {
+                    listener.onItemRemoved(holder.getAdapterPosition());
+                }
+            } else if (listener != null) {
+                listener.onQuantityChanged(holder.getAdapterPosition(), newQuantity);
+            }
+        });
+
+        holder.imgDelete.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onItemRemoved(holder.getAdapterPosition());
+            }
+        });
     }
 
     @Override
     public int getItemCount() {
-        return cartList != null ? cartList.size() : 0;
+        return cartItemList != null ? cartItemList.size() : 0;
     }
 
-    public static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView txt;
-        TextView txtPrice;
-        TextView txtQuantity;
-        // If you have an ImageView in item_cart:
-        // ImageView imgProduct;
+    public static class CartViewHolder extends RecyclerView.ViewHolder {
+        TextView tvName;
+        TextView tvPrice;
+        TextView tvQuantity;
+        TextView tvTotalPrice;
+        ImageView imgProduct;
+        TextView imgIncrease;
+        TextView imgDecrease;
+        ImageView imgDelete;
 
-        public ViewHolder(@NonNull View itemView) {
+        public CartViewHolder(@NonNull View itemView) {
             super(itemView);
-            txt = itemView.findViewById(R.id.tv_name); // Replace with the actual ID in your item_cart.xml
-            txtPrice = itemView.findViewById(R.id.tv_price); // Replace with the actual ID in your item_cart.xml
-            txtQuantity = itemView.findViewById(R.id.tv_quantity); // Replace with the actual ID in your item_cart.xml
-            // If you have an ImageView:
-            // imgProduct = itemView.findViewById(R.id.img_item_product); // Replace with the actual ID in your item_cart.xml
+            tvName = itemView.findViewById(R.id.tv_name);
+            tvPrice = itemView.findViewById(R.id.tv_price);
+            tvQuantity = itemView.findViewById(R.id.tv_quantity);
+            tvTotalPrice = itemView.findViewById(R.id.tv_price);
+            imgProduct = itemView.findViewById(R.id.img_product);
+            imgIncrease = itemView.findViewById(R.id.tv_add);
+            imgDecrease = itemView.findViewById(R.id.tv_sub);
+            imgDelete = itemView.findViewById(R.id.img_delete);
         }
     }
 }

@@ -12,6 +12,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -22,7 +23,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.pro.cakeshop.Adapter.CartAdapter;
 import com.pro.cakeshop.Model.Banh;
-import com.pro.cakeshop.Model.GioHang;
+import com.pro.cakeshop.Model.GioHangItem;
 import com.pro.cakeshop.R;
 
 import java.util.ArrayList;
@@ -33,11 +34,11 @@ public class OrderFragment extends Fragment {
     private DatabaseReference databaseReference;
     private RecyclerView recyclerView;
     private CartAdapter adapter;
-    private List<GioHang> cartList;
-    private List<Banh> banhList;
+    private List<GioHangItem> cartItemList;
     private TextView totalAmountTextView;
+    private TextView checkoutButton;
     private int totalAmount = 0;
-    private String userId = "B002";  // Giả định ID khách hàng
+    private String userId = "0";  // Mặc định là "0" theo cấu trúc db.json
 
     @Nullable
     @Override
@@ -46,80 +47,136 @@ public class OrderFragment extends Fragment {
 
         recyclerView = view.findViewById(R.id.rcv_cart);
         totalAmountTextView = view.findViewById(R.id.tv_total);
+        checkoutButton = view.findViewById(R.id.tv_checkout);
+
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
-        cartList = new ArrayList<>();
-        banhList = new ArrayList<>();
-
+        cartItemList = new ArrayList<>();
         databaseReference = FirebaseDatabase.getInstance().getReference();
 
         fetchCartItems();
+
+        // Thêm sự kiện cho nút thanh toán
+        checkoutButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (cartItemList.size() > 0) {
+                    proceedToCheckout();
+                } else {
+                    Toast.makeText(getContext(), "Giỏ hàng trống!", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
 
         return view;
     }
 
     private void fetchCartItems() {
-        databaseReference.child("gioHang").orderByChild("maKH").equalTo(userId)
+        databaseReference.child("gioHang").child(userId)
                 .addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        cartList.clear();
-                        for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                            GioHang item = dataSnapshot.getValue(GioHang.class);
+                        cartItemList.clear();
+                        totalAmount = 0;
+
+                        for (DataSnapshot itemSnapshot : snapshot.getChildren()) {
+                            GioHangItem item = itemSnapshot.getValue(GioHangItem.class);
                             if (item != null) {
-                                cartList.add(item);
+                                cartItemList.add(item);
+                                totalAmount += item.getGia() * item.getSoLuong();
                             }
                         }
-                        fetchCakeDetails();
+
+                        updateUI();
                     }
 
                     @Override
                     public void onCancelled(@NonNull DatabaseError error) {
-                        Toast.makeText(getContext(), "Lỗi: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                        Log.e("OrderFragment", "Database error: " + error.getMessage());
+                        Toast.makeText(getContext(), "Lỗi kết nối cơ sở dữ liệu: " + error.getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 });
     }
 
-    private void fetchCakeDetails() {
-        databaseReference.child("banh").addListenerForSingleValueEvent(new ValueEventListener() {
+    private void updateUI() {
+        if (totalAmountTextView != null) {
+            totalAmountTextView.setText("Tổng Tiền: " + totalAmount + " VND");
+        } else {
+            Log.e("OrderFragment", "totalAmountTextView is NULL!");
+        }
+
+        adapter = new CartAdapter(cartItemList, getContext(), new CartAdapter.CartItemListener() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                banhList.clear();
-                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                    Banh banh = dataSnapshot.getValue(Banh.class);
-                    if (banh != null) {
-                        banhList.add(banh);
-                    }
-                }
-                updateCart();
+            public void onQuantityChanged(int position, int newQuantity) {
+                updateItemQuantity(position, newQuantity);
             }
 
             @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                Toast.makeText(getContext(), "Lỗi: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+            public void onItemRemoved(int position) {
+                removeCartItem(position);
             }
         });
+
+        recyclerView.setAdapter(adapter);
+
+        // Hiển thị thông báo nếu giỏ hàng trống
+        if (cartItemList.isEmpty()) {
+            Toast.makeText(getContext(), "Giỏ hàng trống", Toast.LENGTH_SHORT).show();
+        }
     }
 
-    private void updateCart() {
-        totalAmount = 0; // Reset trước khi tính lại
+    private void updateItemQuantity(int position, int newQuantity) {
+        if (position >= 0 && position < cartItemList.size()) {
+            GioHangItem item = cartItemList.get(position);
 
-        for (GioHang item : cartList) {
-            for (Banh banh : banhList) {
-                if (item.getMaBanh().equals(banh.getMaBanh())) {
-                    totalAmount += banh.getGia() * item.getSoLuong();
-                }
+            // Cập nhật số lượng
+            if (newQuantity <= 0) {
+                // Nếu số lượng <= 0, xóa sản phẩm
+                removeCartItem(position);
+            } else {
+                // Cập nhật số lượng mới
+                int oldQuantity = item.getSoLuong();
+                item.setSoLuong(newQuantity);
+
+                // Cập nhật tổng tiền
+                totalAmount = totalAmount - (item.getGia() * oldQuantity) + (item.getGia() * newQuantity);
+                totalAmountTextView.setText("Tổng Tiền: " + totalAmount + " VND");
+
+                // Cập nhật lên Firebase
+                databaseReference.child("gioHang").child(userId).child(item.getId())
+                        .child("soLuong").setValue(newQuantity);
+
+                adapter.notifyItemChanged(position);
             }
         }
+    }
 
-        if (totalAmountTextView == null) {
-            Log.e("UpdateCart", "totalAmountTextView is NULL!");
-            return;
+    private void removeCartItem(int position) {
+        if (position >= 0 && position < cartItemList.size()) {
+            GioHangItem item = cartItemList.get(position);
+
+            // Cập nhật tổng tiền
+            totalAmount -= item.getGia() * item.getSoLuong();
+            totalAmountTextView.setText("Tổng Tiền: " + totalAmount + " VND");
+
+            // Xóa sản phẩm khỏi Firebase
+            databaseReference.child("gioHang").child(userId).child(item.getId()).removeValue();
+
+            // Xóa sản phẩm khỏi danh sách và cập nhật adapter
+            cartItemList.remove(position);
+            adapter.notifyItemRemoved(position);
+
+            if (cartItemList.isEmpty()) {
+                Toast.makeText(getContext(), "Giỏ hàng trống", Toast.LENGTH_SHORT).show();
+            }
         }
+    }
 
-        totalAmountTextView.setText("Tổng Tiền: " + totalAmount + " VND");
-        adapter = new CartAdapter(cartList, banhList, getContext());
-        recyclerView.setAdapter(adapter);
+    private void proceedToCheckout() {
+        // TODO: Implement checkout functionality
+        // Chuyển sang màn hình thanh toán hoặc tạo đơn hàng
+        Toast.makeText(getContext(), "Chuyển đến thanh toán với " + cartItemList.size() + " sản phẩm", Toast.LENGTH_SHORT).show();
+
+        // Ví dụ code để tạo đơn hàng mới sẽ được thêm ở đây
     }
 }
-
