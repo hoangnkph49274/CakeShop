@@ -17,6 +17,7 @@ import com.google.firebase.database.ValueEventListener;
 import com.pro.cakeshop.Adapter.CartAdapter;
 import com.pro.cakeshop.Model.Banh;
 import com.pro.cakeshop.Model.GioHang;
+import com.pro.cakeshop.Model.GioHangItem;
 import com.pro.cakeshop.R;
 
 import java.util.ArrayList;
@@ -74,36 +75,71 @@ public class CartActivity extends AppCompatActivity {
     }
 
     private void fetchCakeDetails() {
-        databaseReference.child("banh").addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                banhMap.clear();
-                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                    Banh banh = dataSnapshot.getValue(Banh.class);
+        List<String> maBanhList = new ArrayList<>();
+        for (GioHang item : cartList) {
+            maBanhList.add(item.getMaBanh());
+        }
+
+        for (String maBanh : maBanhList) {
+            databaseReference.child("banh").child(maBanh).addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    Banh banh = snapshot.getValue(Banh.class);
                     if (banh != null) {
-                        banhMap.put(banh.getMaBanh(), banh);
+                        banhMap.put(maBanh, banh);
+                    }
+                    if (banhMap.size() == maBanhList.size()) {
+                        updateCart();
                     }
                 }
-                updateCart();
-            }
 
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                Toast.makeText(CartActivity.this, "Lỗi: " + error.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+                    Toast.makeText(CartActivity.this, "Lỗi: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
     }
+
 
     private void updateCart() {
         totalAmount = 0;
+        List<GioHangItem> gioHangItems = new ArrayList<>();
+
         for (GioHang item : cartList) {
             Banh banh = banhMap.get(item.getMaBanh());
             if (banh != null) {
+                // Tạo GioHangItem từ GioHang và Banh
+                GioHangItem gioHangItem = new GioHangItem();
+                gioHangItem.setId(item.getMaBanh()); // hoặc một ID duy nhất khác
+                gioHangItem.setSoLuong(item.getSoLuong());
+//                gioHangItem.setGia(banh.getGia());
+                gioHangItem.setTenBanh(banh.getTenBanh());
+                gioHangItem.setHinhAnh(banh.getHinhAnh());
+
+                gioHangItems.add(gioHangItem);
                 totalAmount += banh.getGia() * item.getSoLuong();
+            } else {
+                Toast.makeText(this, "Sản phẩm không tồn tại!", Toast.LENGTH_SHORT).show();
             }
         }
-        totalAmountTextView.setText(totalAmount + " VND");
-        adapter = new CartAdapter(cartList, new ArrayList<>(banhMap.values()), this);
+
+        totalAmountTextView.setText(String.format("%,d VND", totalAmount));
+
+        // Tạo CartItemListener
+        CartAdapter.CartItemListener listener = new CartAdapter.CartItemListener() {
+            @Override
+            public void onQuantityChanged(int position, int newQuantity) {
+                // Xử lý khi số lượng thay đổi
+            }
+
+            @Override
+            public void onItemRemoved(int position) {
+                // Xử lý khi item bị xóa
+            }
+        };
+
+        adapter = new CartAdapter(gioHangItems, this, listener);
         recyclerView.setAdapter(adapter);
     }
 }
