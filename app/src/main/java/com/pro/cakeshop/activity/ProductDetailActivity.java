@@ -13,6 +13,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.ValueEventListener;
 import com.pro.cakeshop.Database.FirebaseHelper;
+import com.pro.cakeshop.Fragment.OrderFragment;
 import com.pro.cakeshop.Model.Banh;
 import com.pro.cakeshop.R;
 
@@ -110,4 +111,60 @@ public class ProductDetailActivity extends AppCompatActivity {
         double totalPrice = quantity * price;
         tvTotal.setText(String.format("%,.0f VNĐ", totalPrice));
     }
+
 }
+private void addToCart() {
+        if (productId == null || productId.isEmpty() || currentProduct == null) {
+            Toast.makeText(this, "Không thể thêm sản phẩm không hợp lệ", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Generate a unique ID for the cart item
+        String cartItemId = FirebaseDatabase.getInstance().getReference().push().getKey();
+
+        if (cartItemId != null) {
+            // Create cart item data structure matching the database
+            Map<String, Object> cartItem = new HashMap<>();
+            cartItem.put("id", cartItemId);
+            cartItem.put("maBanh", productId);
+            cartItem.put("gia", currentProduct.getGia());
+            cartItem.put("tenBanh", currentProduct.getTenBanh());
+            cartItem.put("hinhAnh", currentProduct.getHinhAnh());
+            cartItem.put("soLuong", quantity);
+
+            // Add to Firebase under the correct path: gioHang/userId/cartItemId
+            DatabaseReference cartRef = FirebaseDatabase.getInstance().getReference()
+                    .child("gioHang")
+                    .child(userId);
+
+            cartRef.child(cartItemId).setValue(cartItem)
+                    .addOnSuccessListener(new OnSuccessListener<Void>() {
+                        @Override
+                        public void onSuccess(Void aVoid) {
+                            Toast.makeText(ProductDetailActivity.this,
+                                    "Đã thêm vào giỏ hàng",
+                                    Toast.LENGTH_SHORT).show();
+                            navigateToCart();
+                        }
+                    })
+                    .addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            Toast.makeText(ProductDetailActivity.this,
+                                    "Lỗi: " + e.getMessage(),
+                                    Toast.LENGTH_SHORT).show();
+                        }
+                    });
+        }
+    }
+
+    private void navigateToCart() {
+        // Uncomment this when you have a CartActivity
+         Intent intent = new Intent(ProductDetailActivity.this, OrderFragment.class);
+         startActivity(intent);
+
+        // For now, just finish the current activity
+
+    }
+}
+

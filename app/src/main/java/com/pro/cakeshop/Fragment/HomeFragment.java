@@ -1,5 +1,6 @@
 package com.pro.cakeshop.Fragment;
 
+import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -25,6 +26,7 @@ import com.pro.cakeshop.Database.FirebaseHelper;
 import com.pro.cakeshop.Model.Banh;
 import com.pro.cakeshop.Model.Loai;
 import com.pro.cakeshop.R;
+import com.pro.cakeshop.activity.ProductDetailActivity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -228,12 +230,9 @@ public class HomeFragment extends Fragment implements CategoryAdapter.OnCategory
     }
     @Override
     public void onProductClick(Banh banh) {
-        // Handle product click, e.g., navigate to product detail
-        Toast.makeText(getContext(), "Đã chọn: " + banh.getTenBanh(), Toast.LENGTH_SHORT).show();
-
-        // You might use Navigation Component to navigate to product detail
-        // Bundle bundle = new Bundle();
-        // bundle.putString("maBanh", banh.getMaBanh());
-        // Navigation.findNavController(requireView()).navigate(R.id.actionHomeToDetail, bundle);
+        // Chuyển sang ProductDetailActivity và truyền mã bánh
+        Intent intent = new Intent(getActivity(), ProductDetailActivity.class);
+        intent.putExtra("product_id", banh.getMaBanh());
+        startActivity(intent);
     }
 }
