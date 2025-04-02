@@ -45,7 +45,7 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartViewHolder
 
         holder.tvName.setText(item.getTenBanh());
         holder.tvPrice.setText(String.format("%,d VND", item.getGia()));
-        holder.tvQuantity.setText(String.valueOf(item.getSoLuong()));
+        holder.tvCount.setText(String.valueOf(item.getSoLuong()));
 
         // Calculate and set total price for this item
         int totalPrice = item.getGia() * item.getSoLuong();
@@ -55,22 +55,22 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartViewHolder
         if (item.getHinhAnh() != null && !item.getHinhAnh().isEmpty()) {
             Glide.with(context)
                     .load(item.getHinhAnh())
-                    .placeholder(R.drawable.logo) // Replace with your placeholder drawable
-                    .error(R.drawable.ic_star_yellow) // Replace with your error drawable
+                    .placeholder(R.drawable.logo)
+                    .error(R.drawable.ic_star_yellow)
                     .into(holder.imgProduct);
         } else {
-            holder.imgProduct.setImageResource(R.drawable.logo); // Replace with your placeholder drawable
+            holder.imgProduct.setImageResource(R.drawable.logo);
         }
 
         // Set click listeners for quantity buttons
-        holder.imgIncrease.setOnClickListener(v -> {
+        holder.tvAdd.setOnClickListener(v -> {
             int newQuantity = item.getSoLuong() + 1;
             if (listener != null) {
                 listener.onQuantityChanged(holder.getAdapterPosition(), newQuantity);
             }
         });
 
-        holder.imgDecrease.setOnClickListener(v -> {
+        holder.tvSub.setOnClickListener(v -> {
             int newQuantity = item.getSoLuong() - 1;
             if (newQuantity <= 0) {
                 if (listener != null) {
@@ -96,22 +96,22 @@ public class CartAdapter extends RecyclerView.Adapter<CartAdapter.CartViewHolder
     public static class CartViewHolder extends RecyclerView.ViewHolder {
         TextView tvName;
         TextView tvPrice;
-        TextView tvQuantity;
+        TextView tvCount;
         TextView tvTotalPrice;
         ImageView imgProduct;
-        TextView imgIncrease;
-        TextView imgDecrease;
+        TextView tvAdd;
+        TextView tvSub;
         ImageView imgDelete;
 
         public CartViewHolder(@NonNull View itemView) {
             super(itemView);
             tvName = itemView.findViewById(R.id.tv_name);
             tvPrice = itemView.findViewById(R.id.tv_price);
-            tvQuantity = itemView.findViewById(R.id.tv_quantity);
-            tvTotalPrice = itemView.findViewById(R.id.tv_price);
+            tvCount = itemView.findViewById(R.id.tv_count);
+            tvTotalPrice = itemView.findViewById(R.id.tv_description);
             imgProduct = itemView.findViewById(R.id.img_product);
-            imgIncrease = itemView.findViewById(R.id.tv_add);
-            imgDecrease = itemView.findViewById(R.id.tv_sub);
+            tvAdd = itemView.findViewById(R.id.tv_add);
+            tvSub = itemView.findViewById(R.id.tv_sub);
             imgDelete = itemView.findViewById(R.id.img_delete);
         }
     }

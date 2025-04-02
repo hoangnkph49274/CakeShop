@@ -12,7 +12,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -22,7 +21,6 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.pro.cakeshop.Adapter.CartAdapter;
-import com.pro.cakeshop.Model.Banh;
 import com.pro.cakeshop.Model.GioHangItem;
 import com.pro.cakeshop.R;
 
@@ -35,7 +33,7 @@ public class OrderFragment extends Fragment {
     private RecyclerView recyclerView;
     private CartAdapter adapter;
     private List<GioHangItem> cartItemList;
-    private TextView totalAmountTextView;
+    private TextView tvAmount; // Change from totalAmountTextView
     private TextView checkoutButton;
     private int totalAmount = 0;
     private String userId = "0";  // Mặc định là "0" theo cấu trúc db.json
@@ -46,7 +44,7 @@ public class OrderFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_order, container, false);
 
         recyclerView = view.findViewById(R.id.rcv_cart);
-        totalAmountTextView = view.findViewById(R.id.tv_total);
+        tvAmount = view.findViewById(R.id.tv_amount); // Fix: Use correct ID
         checkoutButton = view.findViewById(R.id.tv_checkout);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -99,10 +97,23 @@ public class OrderFragment extends Fragment {
     }
 
     private void updateUI() {
-        if (totalAmountTextView != null) {
-            totalAmountTextView.setText("Tổng Tiền: " + totalAmount + " VND");
+        // Update total amount display
+        if (tvAmount != null) {
+            tvAmount.setText(formatPrice(totalAmount) + " VND");
         } else {
-            Log.e("OrderFragment", "totalAmountTextView is NULL!");
+            Log.e("OrderFragment", "tvAmount is NULL!");
+        }
+
+        // Update item count
+        TextView tvCountItem = getView().findViewById(R.id.tv_count_item);
+        if (tvCountItem != null) {
+            tvCountItem.setText(cartItemList.size() + " sản phẩm");
+        }
+
+        // Update product price
+        TextView tvPriceProduct = getView().findViewById(R.id.tv_price_product);
+        if (tvPriceProduct != null) {
+            tvPriceProduct.setText(formatPrice(totalAmount) + " VND");
         }
 
         adapter = new CartAdapter(cartItemList, getContext(), new CartAdapter.CartItemListener() {
@@ -140,7 +151,9 @@ public class OrderFragment extends Fragment {
 
                 // Cập nhật tổng tiền
                 totalAmount = totalAmount - (item.getGia() * oldQuantity) + (item.getGia() * newQuantity);
-                totalAmountTextView.setText("Tổng Tiền: " + totalAmount + " VND");
+
+                // Update all price displays
+                updatePriceDisplays();
 
                 // Cập nhật lên Firebase
                 databaseReference.child("gioHang").child(userId).child(item.getId())
@@ -157,7 +170,9 @@ public class OrderFragment extends Fragment {
 
             // Cập nhật tổng tiền
             totalAmount -= item.getGia() * item.getSoLuong();
-            totalAmountTextView.setText("Tổng Tiền: " + totalAmount + " VND");
+
+            // Update all price displays
+            updatePriceDisplays();
 
             // Xóa sản phẩm khỏi Firebase
             databaseReference.child("gioHang").child(userId).child(item.getId()).removeValue();
@@ -166,10 +181,34 @@ public class OrderFragment extends Fragment {
             cartItemList.remove(position);
             adapter.notifyItemRemoved(position);
 
+            // Update item count
+            TextView tvCountItem = getView().findViewById(R.id.tv_count_item);
+            if (tvCountItem != null) {
+                tvCountItem.setText(cartItemList.size() + " sản phẩm");
+            }
+
             if (cartItemList.isEmpty()) {
                 Toast.makeText(getContext(), "Giỏ hàng trống", Toast.LENGTH_SHORT).show();
             }
         }
+    }
+
+    private void updatePriceDisplays() {
+        // Update the total amount display
+        if (tvAmount != null) {
+            tvAmount.setText(formatPrice(totalAmount) + " VND");
+        }
+
+        // Update product price
+        TextView tvPriceProduct = getView().findViewById(R.id.tv_price_product);
+        if (tvPriceProduct != null) {
+            tvPriceProduct.setText(formatPrice(totalAmount) + " VND");
+        }
+    }
+
+    // Format price with commas for thousands
+    private String formatPrice(int price) {
+        return String.format("%,d", price).replace(",", ".");
     }
 
     private void proceedToCheckout() {
