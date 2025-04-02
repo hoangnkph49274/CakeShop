@@ -39,6 +39,7 @@ public class OrderFragment extends Fragment {
     private TextView tvAmount; // Change from totalAmountTextView
     private TextView checkoutButton;
     private int totalAmount = 0;
+    private TextView tvAddress,tvName,tvSdt;
     private String userId;  // Cập nhật từ "0" thành "KH002" như trong ProductDetailActivity
 
     @Nullable
@@ -49,6 +50,9 @@ public class OrderFragment extends Fragment {
         recyclerView = view.findViewById(R.id.rcv_cart);
         tvAmount = view.findViewById(R.id.tv_amount); // Fix: Use correct ID
         checkoutButton = view.findViewById(R.id.tv_checkout);
+        tvAddress = view.findViewById(R.id.tv_address);
+        tvName = view.findViewById(R.id.tv_name);
+        tvSdt = view.findViewById(R.id.tv_sdt);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
@@ -74,9 +78,52 @@ public class OrderFragment extends Fragment {
         return view;
     }
 
-    private void loadData(){
+    private void loadData() {
         FirebaseUser user = mAuth.getCurrentUser();
         userId = user.getUid();
+
+        // Add this code to fetch the address
+        fetchUserAddress();
+    }
+
+    private void fetchUserAddress() {
+        databaseReference.child("khachHang").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                    // Check if this is the current user
+                    String maKH = dataSnapshot.child("maKH").getValue(String.class);
+                    String tenKH = dataSnapshot.child("tenKH").getValue(String.class);
+                    String sdt = dataSnapshot.child("sdt").getValue(String.class);
+                    if (maKH != null && maKH.equals(userId)) {
+                        if (sdt != null ) {
+                            tvSdt.setText(sdt);
+                        }
+                        if (tenKH != null ) {
+                            tvName.setText(tenKH);
+                        }
+                        // Found the user, get the address
+                        String address = dataSnapshot.child("diaChi").getValue(String.class);
+                        if (address != null && !address.isEmpty()) {
+                            tvAddress.setText(address);
+                        } else {
+                            tvAddress.setText("Chưa có địa chỉ giao hàng");
+                            tvName.setText("Chưa có địa chỉ giao hàng");
+                            tvSdt.setText("Chưa có địa chỉ giao hàng");
+                        }
+                        return;
+                    }
+                }
+                // If we get here, the user wasn't found
+                tvAddress.setText("Chưa có địa chỉ giao hàng");
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Log.e("OrderFragment", "Failed to read address: " + error.getMessage());
+                tvAddress.setText("Chưa có địa chỉ giao hàng");
+            }
+        });
     }
     private void fetchCartItems() {
         databaseReference.child("gioHang").child(userId)
