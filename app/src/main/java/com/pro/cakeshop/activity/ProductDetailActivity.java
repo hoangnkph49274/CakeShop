@@ -21,6 +21,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.pro.cakeshop.Database.FirebaseHelper;
+import com.pro.cakeshop.Fragment.OrderFragment;
 import com.pro.cakeshop.Model.Banh;
 import com.pro.cakeshop.R;
 
@@ -200,7 +201,7 @@ public class ProductDetailActivity extends AppCompatActivity {
 
     private void navigateToCart() {
         // Uncomment this when you have a CartActivity
-         Intent intent = new Intent(ProductDetailActivity.this, CartActivity.class);
+         Intent intent = new Intent(ProductDetailActivity.this, OrderFragment.class);
          startActivity(intent);
 
         // For now, just finish the current activity
