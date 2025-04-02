@@ -1,6 +1,5 @@
 package com.pro.cakeshop;
 
-
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -12,22 +11,34 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.pro.cakeshop.Model.KhachHang;
+
+import java.util.HashMap;
+import java.util.UUID;
 
 public class RegisterActivity extends AppCompatActivity {
     private EditText etEmail, etPassword;
     private Button btnRegister;
     private FirebaseAuth mAuth;
+    private DatabaseReference mDatabase;
 
     private LinearLayout layoutLogin;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register);
 
+        // Initialize Firebase components
+        mAuth = FirebaseAuth.getInstance();
+        mDatabase = FirebaseDatabase.getInstance().getReference();
+
+        // Initialize UI components
         etEmail = findViewById(R.id.etMail);
         etPassword = findViewById(R.id.etPassword);
         btnRegister = findViewById(R.id.btnRegister);
-        mAuth = FirebaseAuth.getInstance();
         layoutLogin = findViewById(R.id.layout_login);
 
         layoutLogin.setOnClickListener(v -> {
@@ -44,9 +55,8 @@ public class RegisterActivity extends AppCompatActivity {
         if (email.isEmpty() || password.isEmpty()) {
             Toast.makeText(this, "Vui lòng nhập đầy đủ thông tin", Toast.LENGTH_SHORT).show();
             return;
-        }
-        else if (email.endsWith("admin.com")){
-            Toast.makeText(this,"Khong the tao tai khoan voi duoi admin.com",Toast.LENGTH_SHORT).show();
+        } else if (email.endsWith("admin.com")) {
+            Toast.makeText(this, "Khong the tao tai khoan voi duoi admin.com", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -54,6 +64,16 @@ public class RegisterActivity extends AppCompatActivity {
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         FirebaseUser user = mAuth.getCurrentUser();
+
+                        // Add user to khachHang table
+                        if (user != null) {
+                            String userId = user.getUid();
+                            addUserToKhachHang(userId, email);
+
+                            // Create an empty shopping cart for the new user
+//                            createEmptyShoppingCart(userId);
+                        }
+
                         Toast.makeText(this, "Đăng ký thành công", Toast.LENGTH_SHORT).show();
                         startActivity(new Intent(RegisterActivity.this, LoginActivity.class));
                         finish();
@@ -62,4 +82,42 @@ public class RegisterActivity extends AppCompatActivity {
                     }
                 });
     }
+
+    private void addUserToKhachHang(String userId, String email) {
+        // Create KhachHang object with empty fields as required
+        KhachHang khachHang = new KhachHang();
+        khachHang.setMaKH(userId);
+        khachHang.setEmail(email);
+        khachHang.setTenKH(""); // Empty as required
+        khachHang.setDiaChi(""); // Empty as required
+        khachHang.setSdt(""); // Empty as required
+
+        // Add to Firebase
+        mDatabase.child("khachHang").child(userId).setValue(khachHang)
+                .addOnSuccessListener(aVoid -> {
+                    // Successfully added to the database
+                    // We can leave this empty since we already show a toast for successful registration
+                })
+                .addOnFailureListener(e -> {
+                    // If there's a specific need to handle failure to add to khachHang table,
+                    // we could add a separate toast here, but it's optional
+                });
+    }
+
+//    private void createEmptyShoppingCart(String userId) {
+//        // Create an empty HashMap for the shopping cart
+//        HashMap<String, Object> emptyCart = new HashMap<>();
+//
+//        // Set the empty cart in the database
+//        mDatabase.child("gioHang").child(userId).setValue(emptyCart)
+//                .addOnSuccessListener(aVoid -> {
+//                    // Empty cart created successfully
+//                })
+//                .addOnFailureListener(e -> {
+//                    // Handle potential failure (optional)
+//                    Toast.makeText(RegisterActivity.this,
+//                            "Không thể tạo giỏ hàng: " + e.getMessage(),
+//                            Toast.LENGTH_SHORT).show();
+//                });
+//    }
 }
