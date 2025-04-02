@@ -20,13 +20,12 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.pro.cakeshop.Adapter.CategoryAdapter;
-import com.pro.cakeshop.Adapter.ProductAdapter;
 import com.pro.cakeshop.Adapter.ProductUserAdapter;
 import com.pro.cakeshop.Database.FirebaseHelper;
 import com.pro.cakeshop.Model.Banh;
 import com.pro.cakeshop.Model.Loai;
 import com.pro.cakeshop.R;
-import com.pro.cakeshop.activity.ProductDetailActivity;
+import com.pro.cakeshop.Activity.ProductDetailActivity;
 
 import java.util.ArrayList;
 import java.util.List;

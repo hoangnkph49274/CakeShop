@@ -15,6 +15,8 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -33,10 +35,11 @@ public class OrderFragment extends Fragment {
     private RecyclerView recyclerView;
     private CartAdapter adapter;
     private List<GioHangItem> cartItemList;
+    private FirebaseAuth mAuth;
     private TextView tvAmount; // Change from totalAmountTextView
     private TextView checkoutButton;
     private int totalAmount = 0;
-    private String userId = "0";  // Mặc định là "0" theo cấu trúc db.json
+    private String userId;  // Cập nhật từ "0" thành "KH002" như trong ProductDetailActivity
 
     @Nullable
     @Override
@@ -51,8 +54,10 @@ public class OrderFragment extends Fragment {
 
         cartItemList = new ArrayList<>();
         databaseReference = FirebaseDatabase.getInstance().getReference();
-
+        mAuth = FirebaseAuth.getInstance();
+        loadData();
         fetchCartItems();
+
 
         // Thêm sự kiện cho nút thanh toán
         checkoutButton.setOnClickListener(new View.OnClickListener() {
@@ -69,9 +74,13 @@ public class OrderFragment extends Fragment {
         return view;
     }
 
+    private void loadData(){
+        FirebaseUser user = mAuth.getCurrentUser();
+        userId = user.getUid();
+    }
     private void fetchCartItems() {
         databaseReference.child("gioHang").child(userId)
-                .addListenerForSingleValueEvent(new ValueEventListener() {
+                .addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         cartItemList.clear();

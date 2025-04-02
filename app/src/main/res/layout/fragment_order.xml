@@ -32,27 +32,7 @@
                     android:focusable="false"
                     android:nestedScrollingEnabled="false"/>
 
-                <LinearLayout
-                    android:id="@+id/layout_add_order"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:layout_marginTop="@dimen/define_dimen_10"
-                    android:orientation="horizontal">
 
-                    <ImageView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:src="@drawable/ic_arow_left"/>
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textColor="@color/textColorPrimary"
-                        android:textSize="@dimen/text_size_small"
-                        android:layout_marginStart="@dimen/define_dimen_10"
-                        android:text="Thêm vào giỏ hàng"/>
-                </LinearLayout>
             </LinearLayout>
 
             <View
