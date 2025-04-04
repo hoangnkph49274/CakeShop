@@ -1,6 +1,8 @@
 package com.pro.cakeshop.Model;
 
-public class DonHangChiTiet {
+import java.io.Serializable;
+
+public class DonHangChiTiet implements Serializable {
     private String maDonHang;
     private String maBanh;
     private int soLuong;

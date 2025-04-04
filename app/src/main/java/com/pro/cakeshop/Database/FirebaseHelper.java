@@ -24,6 +24,14 @@ public class FirebaseHelper {
     public FirebaseHelper() {
         this.database = FirebaseDatabase.getInstance();
     }
+    public FirebaseDatabase getDatabase() {
+        return database;
+    }
+    public interface FirebaseCallback<T> {
+        void onSuccess(T result);
+        void onFailure(String message); // Thêm phương thức này
+    }
+
 
     // Tham chiếu đến bảng Khách Hàng
     public DatabaseReference getKhachHangReference() {
@@ -55,11 +63,6 @@ public class FirebaseHelper {
         return database.getReference("loai");
     }
 
-    // Tham chiếu đến bảng Đơn Hàng Chi Tiết
-    public DatabaseReference getDonHangChiTietReference() {
-        return database.getReference("donHangChiTiet");
-    }
-
     // Lấy danh sách bánh
     public void getListBanh(FirebaseCallback<List<Banh>> callback) {
         getBanhReference().addListenerForSingleValueEvent(new ValueEventListener() {
@@ -81,7 +84,42 @@ public class FirebaseHelper {
             }
         });
     }
+    public void getBanhByMa(String maBanh, FirebaseCallback<Banh> callback) {
+        if (maBanh == null || maBanh.isEmpty()) {
+            callback.onFailure("Mã bánh trống");
+            return;
+        }
 
+        Log.d("FirebaseHelper", "Getting bánh with mã: " + maBanh);
+
+        // Replace banhReference with getBanhReference()
+        getBanhReference().child(maBanh).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    Banh banh = snapshot.getValue(Banh.class);
+                    if (banh != null) {
+                        // Make sure the maBanh is set in case it's not included in the Firebase data
+                        banh.setMaBanh(snapshot.getKey());
+                        Log.d("FirebaseHelper", "Found bánh: " + banh.getTenBanh());
+                        callback.onSuccess(banh);
+                    } else {
+                        Log.e("FirebaseHelper", "Could not convert snapshot to Banh object");
+                        callback.onFailure("Lỗi chuyển đổi dữ liệu");
+                    }
+                } else {
+                    Log.e("FirebaseHelper", "No data found for maBanh: " + maBanh);
+                    callback.onFailure("Không tìm thấy bánh");
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Log.e("FirebaseHelper", "Database error: " + error.getMessage());
+                callback.onFailure("Lỗi cơ sở dữ liệu: " + error.getMessage());
+            }
+        });
+    }
     // Lấy danh sách khách hàng
     public void getListKhachHang(FirebaseCallback<List<KhachHang>> callback) {
         getKhachHangReference().addListenerForSingleValueEvent(new ValueEventListener() {
@@ -126,48 +164,25 @@ public class FirebaseHelper {
         });
     }
 
-    // Lấy danh sách đơn hàng
-    public void getListDonHang(FirebaseCallback<List<DonHang>> callback) {
-        getDonHangReference().addListenerForSingleValueEvent(new ValueEventListener() {
+    // Lấy danh sách đơn hàng cho một khách hàng cụ thể
+    public void getListDonHangByKhachHang(String maKH, FirebaseCallback<List<DonHang>> callback) {
+        getDonHangReference().child(maKH).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 List<DonHang> listDonHang = new ArrayList<>();
                 for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
                     DonHang donHang = dataSnapshot.getValue(DonHang.class);
                     if (donHang != null) {
-                        // Lấy chi tiết đơn hàng
-                        getDonHangChiTiet(donHang.getMaDonHang(), new FirebaseCallback<List<DonHangChiTiet>>() {
-                            @Override
-                            public void onSuccess(List<DonHangChiTiet> result) {
-                                if (result != null) {
-                                    donHang.setDonHangChiTiet(result);
-                                }
-                                listDonHang.add(donHang);
+                        // Đảm bảo đơn hàng có mã đơn hàng
+                        donHang.setMaDonHang(dataSnapshot.getKey());
+                        // Đảm bảo đơn hàng có mã khách hàng
+                        donHang.setMaKH(maKH);
 
-                                // Nếu đã xử lý tất cả đơn hàng, gọi callback
-                                if (listDonHang.size() == snapshot.getChildrenCount()) {
-                                    callback.onSuccess(listDonHang);
-                                }
-                            }
-
-                            @Override
-                            public void onFailure(String error) {
-                                // Vẫn thêm đơn hàng mặc dù không có chi tiết
-                                listDonHang.add(donHang);
-
-                                // Nếu đã xử lý tất cả đơn hàng, gọi callback
-                                if (listDonHang.size() == snapshot.getChildrenCount()) {
-                                    callback.onSuccess(listDonHang);
-                                }
-                            }
-                        });
+                        // Chi tiết đơn hàng đã được Firebase tự động mapping dựa trên cấu trúc JSON
+                        listDonHang.add(donHang);
                     }
                 }
-
-                // Nếu không có đơn hàng, gọi callback ngay
-                if (snapshot.getChildrenCount() == 0) {
-                    callback.onSuccess(listDonHang);
-                }
+                callback.onSuccess(listDonHang);
             }
 
             @Override
@@ -177,19 +192,44 @@ public class FirebaseHelper {
         });
     }
 
-    // Lấy chi tiết đơn hàng theo mã đơn hàng
-    public void getDonHangChiTiet(String maDonHang, FirebaseCallback<List<DonHangChiTiet>> callback) {
-        getDonHangChiTietReference().child(maDonHang).addListenerForSingleValueEvent(new ValueEventListener() {
+    // Lấy tất cả đơn hàng từ tất cả khách hàng (cho admin)
+    public void getAllDonHang(FirebaseCallback<List<DonHang>> callback) {
+        getDonHangReference().addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                List<DonHangChiTiet> listChiTiet = new ArrayList<>();
-                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                    DonHangChiTiet chiTiet = dataSnapshot.getValue(DonHangChiTiet.class);
-                    if (chiTiet != null) {
-                        listChiTiet.add(chiTiet);
+                List<DonHang> allDonHang = new ArrayList<>();
+
+                // Đếm số khách hàng cần duyệt qua
+                long customerCount = snapshot.getChildrenCount();
+                if (customerCount == 0) {
+                    callback.onSuccess(allDonHang);
+                    return;
+                }
+
+                final long[] processedCustomers = {0};
+
+                // Duyệt qua từng khách hàng
+                for (DataSnapshot customerSnapshot : snapshot.getChildren()) {
+                    String maKH = customerSnapshot.getKey();
+
+                    // Duyệt qua đơn hàng của khách hàng này
+                    for (DataSnapshot orderSnapshot : customerSnapshot.getChildren()) {
+                        DonHang donHang = orderSnapshot.getValue(DonHang.class);
+                        if (donHang != null) {
+                            donHang.setMaDonHang(orderSnapshot.getKey());
+                            donHang.setMaKH(maKH);
+                            allDonHang.add(donHang);
+                        }
+                    }
+
+                    // Tăng số khách hàng đã xử lý
+                    processedCustomers[0]++;
+
+                    // Nếu đã xử lý tất cả khách hàng, trả về kết quả
+                    if (processedCustomers[0] == customerCount) {
+                        callback.onSuccess(allDonHang);
                     }
                 }
-                callback.onSuccess(listChiTiet);
             }
 
             @Override
@@ -311,28 +351,7 @@ public class FirebaseHelper {
     }
 
     // Thêm item vào giỏ hàng
-    public void addToCart(String maKH, GioHangItem item, FirebaseCallback<Void> callback) {
-        // Tạo key mới cho item giỏ hàng nếu chưa có
-        if (item.getId() == null || item.getId().isEmpty()) {
-            String itemId = getGioHangReference().child(maKH).push().getKey();
-            item.setId(itemId);
-        }
 
-        // Thêm item vào giỏ hàng
-        getGioHangReference().child(maKH).child(item.getId()).setValue(item)
-                .addOnSuccessListener(new OnSuccessListener<Void>() {
-                    @Override
-                    public void onSuccess(Void aVoid) {
-                        callback.onSuccess(null);
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        callback.onFailure(e.getMessage());
-                    }
-                });
-    }
 
     // Xóa item khỏi giỏ hàng
     public void removeFromCart(String maKH, String itemId, FirebaseCallback<Void> callback) {
@@ -351,61 +370,65 @@ public class FirebaseHelper {
                 });
     }
 
-    // Tạo đơn hàng mới
-    public void createOrder(DonHang donHang, List<DonHangChiTiet> chiTietList, FirebaseCallback<String> callback) {
-        // Tạo key mới cho đơn hàng nếu chưa có
-        if (donHang.getMaDonHang() == null || donHang.getMaDonHang().isEmpty()) {
-            String orderId = getDonHangReference().push().getKey();
-            donHang.setMaDonHang(orderId);
-        }
-
-        // Thêm đơn hàng vào database
-        getDonHangReference().child(donHang.getMaDonHang()).setValue(donHang)
+    // Cập nhật số lượng sản phẩm trong giỏ hàng
+    public void updateCartItemQuantity(String maKH, String itemId, int newQuantity, FirebaseCallback<Void> callback) {
+        getGioHangReference().child(maKH).child(itemId).child("soLuong")
+                .setValue(newQuantity)
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void aVoid) {
-                        // Thêm chi tiết đơn hàng
-                        Map<String, Object> chiTietUpdates = new HashMap<>();
-                        for (int i = 0; i < chiTietList.size(); i++) {
-                            DonHangChiTiet chiTiet = chiTietList.get(i);
-                            chiTiet.setMaDonHang(donHang.getMaDonHang());
-                            chiTietUpdates.put(String.valueOf(i), chiTiet);
-                        }
+                        callback.onSuccess(null);
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        callback.onFailure(e.getMessage());
+                    }
+                });
+    }
 
-                        getDonHangChiTietReference().child(donHang.getMaDonHang()).updateChildren(chiTietUpdates)
+    // Tạo đơn hàng mới
+    public void createOrder(String maKH, DonHang donHang, List<DonHangChiTiet> chiTietList, FirebaseCallback<String> callback) {
+        // Tạo key mới cho đơn hàng nếu chưa có
+        if (donHang.getMaDonHang() == null || donHang.getMaDonHang().isEmpty()) {
+            String orderId = getDonHangReference().child(maKH).push().getKey();
+            donHang.setMaDonHang(orderId);
+        }
+
+        // Đảm bảo đơn hàng có mã khách hàng
+        donHang.setMaKH(maKH);
+
+        // Thiết lập chi tiết đơn hàng trong đơn hàng
+        donHang.setDonHangChiTiet(chiTietList);
+
+        // Thêm đơn hàng vào database theo cấu trúc nested
+        getDonHangReference().child(maKH).child(donHang.getMaDonHang()).setValue(donHang)
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        // Tạo lịch sử mua hàng
+                        String lsmhId = getLichSuMuaHangReference().push().getKey();
+                        LichSuMuaHang lichSu = new LichSuMuaHang(lsmhId, maKH,
+                                donHang.getMaDonHang(), String.valueOf(donHang.getNgayDat()));
+
+                        getLichSuMuaHangReference().child(lsmhId).setValue(lichSu)
                                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                                     @Override
                                     public void onSuccess(Void aVoid) {
-                                        // Tạo lịch sử mua hàng
-                                        String lsmhId = getLichSuMuaHangReference().push().getKey();
-                                        LichSuMuaHang lichSu = new LichSuMuaHang(lsmhId, donHang.getMaKH(),
-                                                donHang.getMaDonHang(), donHang.getNgayDat());
-
-                                        getLichSuMuaHangReference().child(lsmhId).setValue(lichSu)
+                                        // Xóa giỏ hàng sau khi đặt hàng thành công
+                                        getGioHangReference().child(maKH).removeValue()
                                                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                                                     @Override
                                                     public void onSuccess(Void aVoid) {
-                                                        // Xóa giỏ hàng sau khi đặt hàng thành công
-                                                        getGioHangReference().child(donHang.getMaKH()).removeValue()
-                                                                .addOnSuccessListener(new OnSuccessListener<Void>() {
-                                                                    @Override
-                                                                    public void onSuccess(Void aVoid) {
-                                                                        callback.onSuccess(donHang.getMaDonHang());
-                                                                    }
-                                                                })
-                                                                .addOnFailureListener(new OnFailureListener() {
-                                                                    @Override
-                                                                    public void onFailure(@NonNull Exception e) {
-                                                                        // Vẫn gọi callback thành công vì đơn hàng đã được tạo
-                                                                        callback.onSuccess(donHang.getMaDonHang());
-                                                                    }
-                                                                });
+                                                        callback.onSuccess(donHang.getMaDonHang());
                                                     }
                                                 })
                                                 .addOnFailureListener(new OnFailureListener() {
                                                     @Override
                                                     public void onFailure(@NonNull Exception e) {
-                                                        callback.onFailure(e.getMessage());
+                                                        // Vẫn gọi callback thành công vì đơn hàng đã được tạo
+                                                        callback.onSuccess(donHang.getMaDonHang());
                                                     }
                                                 });
                                     }
@@ -427,11 +450,11 @@ public class FirebaseHelper {
     }
 
     // Cập nhật trạng thái đơn hàng
-    public void updateOrderStatus(String maDonHang, String trangThai, FirebaseCallback<Void> callback) {
+    public void updateOrderStatus(String maKH, String maDonHang, String trangThai, FirebaseCallback<Void> callback) {
         Map<String, Object> updates = new HashMap<>();
         updates.put("trangThai", trangThai);
 
-        getDonHangReference().child(maDonHang).updateChildren(updates)
+        getDonHangReference().child(maKH).child(maDonHang).updateChildren(updates)
                 .addOnSuccessListener(new OnSuccessListener<Void>() {
                     @Override
                     public void onSuccess(Void aVoid) {
@@ -446,9 +469,5 @@ public class FirebaseHelper {
                 });
     }
 
-    // Interface callback để xử lý dữ liệu từ Firebase
-    public interface FirebaseCallback<T> {
-        void onSuccess(T result);
-        void onFailure(String error);
-    }
+
 }

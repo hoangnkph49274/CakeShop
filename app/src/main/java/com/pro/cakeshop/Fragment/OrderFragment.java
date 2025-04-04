@@ -1,5 +1,7 @@
 package com.pro.cakeshop.Fragment;
 
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -7,6 +9,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.viewpager2.widget.ViewPager2;
 
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -22,9 +25,13 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.pro.cakeshop.Activity.LoadingActivity;
 import com.pro.cakeshop.Adapter.CartAdapter;
+import com.pro.cakeshop.Model.DonHang;
+import com.pro.cakeshop.Model.DonHangChiTiet;
 import com.pro.cakeshop.Model.GioHangItem;
 import com.pro.cakeshop.R;
+import com.pro.cakeshop.UserActivity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -268,10 +275,62 @@ public class OrderFragment extends Fragment {
     }
 
     private void proceedToCheckout() {
-        // TODO: Implement checkout functionality
-        // Chuyển sang màn hình thanh toán hoặc tạo đơn hàng
-        Toast.makeText(getContext(), "Chuyển đến thanh toán với " + cartItemList.size() + " sản phẩm", Toast.LENGTH_SHORT).show();
+        if (cartItemList == null || cartItemList.isEmpty()) {
+            Toast.makeText(getContext(), "Giỏ hàng trống!", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
-        // Ví dụ code để tạo đơn hàng mới sẽ được thêm ở đây
+        // Kiểm tra địa chỉ giao hàng
+        String address = tvAddress.getText().toString();
+        if (address.equals("Chưa có địa chỉ giao hàng")) {
+            Toast.makeText(getContext(), "Vui lòng chọn địa chỉ giao hàng", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Tạo đơn hàng mới
+        DonHang orderBooking = new DonHang();
+        orderBooking.setMaDonHang(String.valueOf(System.currentTimeMillis()));
+
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user != null) {
+            orderBooking.setMaKH(user.getUid()); // Lưu ID của khách hàng
+        }
+
+        orderBooking.setNgayDat(System.currentTimeMillis());
+
+        // Chuyển đổi từ giỏ hàng sang danh sách chi tiết đơn hàng
+        List<DonHangChiTiet> chiTietList = new ArrayList<>();
+        for (GioHangItem item : cartItemList) {
+            DonHangChiTiet chiTiet = new DonHangChiTiet();
+            chiTiet.setMaBanh(item.getMaBanh());
+            chiTiet.setSoLuong(item.getSoLuong());
+            chiTiet.setThanhTien(item.getGia()*item.getSoLuong());
+
+            chiTietList.add(chiTiet);
+        }
+        orderBooking.setDonHangChiTiet(chiTietList);
+
+        // Thiết lập tổng tiền
+        orderBooking.setTongTien(totalAmount);
+
+        orderBooking.setTrangThai("Chưa nhận hàng");
+
+        // Thiết lập thông tin địa chỉ
+        String fullAddress = tvAddress.getText().toString();
+        String name = tvName.getText().toString();
+        String phone = tvSdt.getText().toString();
+
+        orderBooking.setDiaChi(name);
+
+        // Khởi động `PaymentActivity`
+        Bundle bundle = new Bundle();
+        bundle.putSerializable("ORDER_OBJECT", orderBooking);
+
+        Intent intent = new Intent(getActivity(), LoadingActivity.class);
+        intent.putExtras(bundle);
+        startActivity(intent);
+
     }
+
+
 }
