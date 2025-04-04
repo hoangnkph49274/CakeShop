@@ -23,6 +23,8 @@ import com.pro.cakeshop.Model.Loai;
 import com.pro.cakeshop.R;
 import com.pro.cakeshop.Database.FirebaseHelper;
 
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -53,7 +55,10 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
     public void onBindViewHolder(@NonNull ProductViewHolder holder, int position) {
         Banh banh = productList.get(position);
         holder.tvName.setText(banh.getTenBanh());
-        holder.tvPriceSale.setText(banh.getGia() + " VND");
+        DecimalFormatSymbols symbols = new DecimalFormatSymbols();
+        symbols.setGroupingSeparator('.');
+        DecimalFormat decimalFormat = new DecimalFormat("#,###", symbols);
+        holder.tvPriceSale.setText(decimalFormat.format(banh.getGia()) + " đ");
         // Lấy tên loại từ AdminProductFragment
         String tenLoai = loaiMap.get(banh.getMaLoai());
 
@@ -67,6 +72,13 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
 
         holder.imgEdit.setOnClickListener(v -> showEditDialog(banh));
         holder.imgDelete.setOnClickListener(v -> adminProductFragment.deleteProduct(banh));
+    }
+
+    private String formatCurrency(long amount) {
+        DecimalFormatSymbols symbols = new DecimalFormatSymbols();
+        symbols.setGroupingSeparator('.'); // Set separator as dot
+        DecimalFormat decimalFormat = new DecimalFormat("#,###", symbols);
+        return decimalFormat.format(amount);
     }
 
     @Override
@@ -87,7 +99,7 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
             super(itemView);
             imgProduct = itemView.findViewById(R.id.img_product);
             tvName = itemView.findViewById(R.id.tv_name);
-            tvPriceSale = itemView.findViewById(R.id.tv_price_sale);
+            tvPriceSale = itemView.findViewById(R.id.tv_price);
             tv_category = itemView.findViewById(R.id.tv_category);
             imgEdit = itemView.findViewById(R.id.img_edit);
             imgDelete = itemView.findViewById(R.id.img_delete);
