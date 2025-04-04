@@ -8,6 +8,7 @@ import androidx.viewpager2.widget.ViewPager2;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.pro.cakeshop.Adapter.ViewPagerAdapter;
 import com.pro.cakeshop.Adapter.ViewUserPagerAdapter;
+import com.pro.cakeshop.Fragment.OrderFragment;
 
 public class UserActivity extends AppCompatActivity {
     private ViewPager2 viewPager2;
@@ -33,6 +34,10 @@ public class UserActivity extends AppCompatActivity {
                 bottomNavigationView.getMenu().getItem(position).setChecked(true);
             }
         });
+
+        if (getIntent().getBooleanExtra("show_order_tab", false)) {
+            viewPager2.setCurrentItem(1); // Thay 1 bằng vị trí của OrderFragment trong ViewPager2
+        }
 
         // Lắng nghe sự kiện khi nhấn vào BottomNavigationView
         bottomNavigationView.setOnItemSelectedListener(item -> {

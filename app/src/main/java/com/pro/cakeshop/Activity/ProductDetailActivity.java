@@ -1,5 +1,6 @@
 package com.pro.cakeshop.Activity;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -11,6 +12,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.viewpager2.widget.ViewPager2;
 
 import com.bumptech.glide.Glide;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -25,6 +27,7 @@ import com.google.firebase.database.ValueEventListener;
 import com.pro.cakeshop.Database.FirebaseHelper;
 import com.pro.cakeshop.Model.Banh;
 import com.pro.cakeshop.R;
+import com.pro.cakeshop.UserActivity;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -264,9 +267,39 @@ public class ProductDetailActivity extends AppCompatActivity {
     private void navigateToCart() {
         // Uncomment this when you have a CartActivity
         Toast.makeText(ProductDetailActivity.this, "Đang chuyển đến giỏ hàng", Toast.LENGTH_SHORT).show();
-
+        dialog();
 
         // For now, just finish the current activity
 
+    }
+    private void dialog() {
+        androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this);
+        builder.setMessage("Bạn có muốn tiếp tục mua hàng không?");
+
+        builder.setPositiveButton("Tiếp tục mua", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                // Start UserActivity and indicate to show the Home tab
+                Intent intent = new Intent(ProductDetailActivity.this, UserActivity.class);
+                intent.putExtra("show_home_tab", true);
+                startActivity(intent);
+                finish(); // Optional: close this activity
+            }
+        });
+
+        builder.setNegativeButton("Giỏ hàng", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                // Chuyển sang UserActivity và yêu cầu hiển thị OrderFragment
+                Intent intent = new Intent(ProductDetailActivity.this, UserActivity.class);
+                intent.putExtra("show_order_tab", true);
+                startActivity(intent);
+                finish();
+            }
+        });
+
+
+        // Hiển thị dialog
+        builder.create().show();
     }
 }

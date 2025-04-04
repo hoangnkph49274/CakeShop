@@ -1,16 +1,18 @@
 package com.pro.cakeshop.Model;
 
-import com.pro.cakeshop.Model.DonHangChiTiet;
+import android.os.Parcel;
+import android.os.Parcelable;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 // Model Đơn Hàng (Order) with DonHangChiTiet relationship
-public class DonHang {
+public class DonHang implements Serializable {
     private String maDonHang;
     private String maKH;
     private String diaChi;
-    private String ngayDat;
+    private Long ngayDat;
     private int tongTien;
     private String trangThai;
     private List<DonHangChiTiet> donHangChiTiet; // List of order details
@@ -20,7 +22,7 @@ public class DonHang {
         this.donHangChiTiet = new ArrayList<>();
     }
 
-    public DonHang(String maDonHang, String maKH, String diaChi, String ngayDat, int tongTien, String trangThai) {
+    public DonHang(String maDonHang, String maKH, String diaChi, long ngayDat, int tongTien, String trangThai) {
         this.maDonHang = maDonHang;
         this.maKH = maKH;
         this.diaChi = diaChi;
@@ -55,11 +57,11 @@ public class DonHang {
         this.diaChi = diaChi;
     }
 
-    public String getNgayDat() {
+    public long getNgayDat() {
         return ngayDat;
     }
 
-    public void setNgayDat(String ngayDat) {
+    public void setNgayDat(long ngayDat) {
         this.ngayDat = ngayDat;
     }
 
@@ -94,4 +96,6 @@ public class DonHang {
         }
         this.donHangChiTiet.add(chiTiet);
     }
+
+    // Implement Parcelable meth
 }
