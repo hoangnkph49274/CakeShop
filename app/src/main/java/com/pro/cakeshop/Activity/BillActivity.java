@@ -30,8 +30,13 @@ import com.pro.cakeshop.R;
 
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
+import java.util.TimeZone;
 
 public class BillActivity extends AppCompatActivity {
 
@@ -166,10 +171,34 @@ public class BillActivity extends AppCompatActivity {
         return decimalFormat.format(amount);
     }
 
+    // In BillActivity.java - modify the initData() method
+
     private void initData() {
         tvIdTransaction.setText(mDonHang.getMaDonHang());
-        tvDateTime.setText(DateTimeUtils.convertTimeStampToDate((mDonHang.getNgayDat())));
 
+        // Fix for date handling
+        try {
+            // Check if the date is in timestamp format or ISO format
+            String dateStr = mDonHang.getNgayDat();
+            if (dateStr.contains("T")) {
+                // It's an ISO date string like "2025-04-04T13:35:26Z"
+                tvDateTime.setText(formatIsoDate(dateStr));
+            } else {
+                // It's a timestamp (or we'll try to parse it as one)
+                try {
+                    long timestamp = Long.parseLong(dateStr);
+                    tvDateTime.setText(DateTimeUtils.convertTimeStampToDate(timestamp));
+                } catch (NumberFormatException e) {
+                    // Fallback if parsing fails
+                    tvDateTime.setText(dateStr);
+                }
+            }
+        } catch (Exception e) {
+            // Final fallback - just show the raw string if all else fails
+            tvDateTime.setText(mDonHang.getNgayDat());
+        }
+
+        // Rest of your method remains the same
         // Calculate subtotal from order details
         long subtotal = 0;
         if (mDonHang.getDonHangChiTiet() != null) {
@@ -206,6 +235,22 @@ public class BillActivity extends AppCompatActivity {
         rcvProducts.setAdapter(adapter);
     }
 
+    // Add this helper method to format ISO dates
+    private String formatIsoDate(String isoDateString) {
+        try {
+            // Parse the ISO 8601 date
+            SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault());
+            isoFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+            Date date = isoFormat.parse(isoDateString);
+
+            // Format to your desired output format
+            SimpleDateFormat outputFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());
+            return outputFormat.format(date);
+        } catch (ParseException e) {
+            e.printStackTrace();
+            return isoDateString; // Return the original string if parsing fails
+        }
+    }
     private void showProgressDialog(boolean isShow) {
         // Implement your progress dialog here
         // You can use a ProgressDialog or a custom layout
