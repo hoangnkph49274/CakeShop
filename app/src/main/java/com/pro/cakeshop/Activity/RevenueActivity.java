@@ -2,10 +2,13 @@ package com.pro.cakeshop.Activity;
 
 import android.app.DatePickerDialog;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -35,6 +38,7 @@ public class RevenueActivity extends AppCompatActivity {
     private OrderHistoryAdapter orderHistoryAdapter;
     private List<DonHang> orderList;
 
+    private Toolbar toolbar;
     private Calendar calendarFrom = Calendar.getInstance();
     private Calendar calendarTo = Calendar.getInstance();
     private final SimpleDateFormat dateFormatter = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
@@ -47,14 +51,21 @@ public class RevenueActivity extends AppCompatActivity {
         setContentView(R.layout.activity_revenue);
 
         initializeViews();
+
         setupDatePickers();
         setupRecyclerView();
         fetchOrderData();
+
     }
 
     private void initializeViews() {
-        // Initialize toolbar
+        // Get the toolbar view from the included layout
+        View toolbarView = findViewById(R.id.toolbar);
+        // Find the back button and title within the toolbar layout if needed
+        ImageView imgBack = toolbarView.findViewById(R.id.img_toolbar_back);
+        TextView tvTitle = toolbarView.findViewById(R.id.tv_toolbar_title);
 
+        // Set up other views
         tvDateFrom = findViewById(R.id.tv_date_from);
         tvDateTo = findViewById(R.id.tv_date_to);
         tvTotalRevenue = findViewById(R.id.tv_total_value);
@@ -63,6 +74,15 @@ public class RevenueActivity extends AppCompatActivity {
         // Set default date values to current date
         tvDateFrom.setText(dateFormatter.format(calendarFrom.getTime()));
         tvDateTo.setText(dateFormatter.format(calendarTo.getTime()));
+
+        // Set up toolbar using your custom view instead of setSupportActionBar
+        if (tvTitle != null) {
+            tvTitle.setText("Doanh Thu");
+        }
+
+        if (imgBack != null) {
+            imgBack.setOnClickListener(v -> onBackPressed());
+        }
     }
 
     private void setupDatePickers() {

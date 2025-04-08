@@ -46,8 +46,8 @@ public class OrderHistoryAdapter extends RecyclerView.Adapter<OrderHistoryAdapte
         holder.tvId.setText(donHang.getMaDonHang());
 
         // Format date
-        String date = dateFormat.format(new Date(donHang.getNgayDat()));
-        holder.tvDate.setText(date);
+//        String date = dateFormat.format(new Date(donHang.getNgayDat()));
+        holder.tvDate.setText(donHang.getNgayDat());
 
 
 
