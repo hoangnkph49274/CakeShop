@@ -1,19 +1,20 @@
 package com.pro.cakeshop.Model;
 
-import android.os.Parcel;
-import android.os.Parcelable;
 
 import java.io.Serializable;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 // Model Đơn Hàng (Order) with DonHangChiTiet relationship
 public class DonHang implements Serializable {
     private String maDonHang;
     private String maKH;
     private String diaChi;
-    private Long ngayDat;
-    private int tongTien;
+    private Object ngayDat;
+    private long tongTien;
     private String trangThai;
     private List<DonHangChiTiet> donHangChiTiet; // List of order details
 
@@ -22,7 +23,7 @@ public class DonHang implements Serializable {
         this.donHangChiTiet = new ArrayList<>();
     }
 
-    public DonHang(String maDonHang, String maKH, String diaChi, long ngayDat, int tongTien, String trangThai) {
+    public DonHang(String maDonHang, String maKH, String diaChi, String ngayDat, long tongTien, String trangThai) {
         this.maDonHang = maDonHang;
         this.maKH = maKH;
         this.diaChi = diaChi;
@@ -57,19 +58,28 @@ public class DonHang implements Serializable {
         this.diaChi = diaChi;
     }
 
-    public long getNgayDat() {
-        return ngayDat;
+    public String getNgayDat() {
+        if (ngayDat instanceof Long) {
+            // Convert từ timestamp sang định dạng chuỗi ISO
+            long timestamp = (Long) ngayDat;
+            Date date = new Date(timestamp);
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault());
+            return sdf.format(date);
+        } else if (ngayDat instanceof String) {
+            return (String) ngayDat;
+        } else {
+            return "";
+        }
     }
 
-    public void setNgayDat(long ngayDat) {
+    public void setNgayDat(Object ngayDat) {
         this.ngayDat = ngayDat;
     }
-
-    public int getTongTien() {
+    public long getTongTien() {
         return tongTien;
     }
 
-    public void setTongTien(int tongTien) {
+    public void setTongTien(long tongTien) {
         this.tongTien = tongTien;
     }
 
@@ -97,5 +107,4 @@ public class DonHang implements Serializable {
         this.donHangChiTiet.add(chiTiet);
     }
 
-    // Implement Parcelable meth
 }

@@ -296,7 +296,7 @@ public class OrderFragment extends Fragment {
             orderBooking.setMaKH(user.getUid()); // Lưu ID của khách hàng
         }
 
-        orderBooking.setNgayDat(System.currentTimeMillis());
+        orderBooking.setNgayDat(String.valueOf(System.currentTimeMillis()));
 
         // Chuyển đổi từ giỏ hàng sang danh sách chi tiết đơn hàng
         List<DonHangChiTiet> chiTietList = new ArrayList<>();
