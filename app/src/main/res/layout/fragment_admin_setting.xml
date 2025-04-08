@@ -1,14 +1,73 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".Fragment.Admin.AdminSettingFragment">
+    android:orientation="vertical"
+    android:background="@color/white"
+    android:padding="@dimen/define_dimen_20"
+    tools:ignore="ContentDescription, UseCompatTextViewDrawableXml, UnusedAttribute" >
 
-    <!-- TODO: Update blank fragment layout -->
+    <ImageView
+        android:layout_width="@dimen/define_dimen_60"
+        android:layout_height="@dimen/define_dimen_60"
+        android:src="@drawable/logo" />
+
     <TextView
+        android:id="@+id/tv_email"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:text="Setting" />
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/define_dimen_5"
+        android:text="admin@admin.com"
+        android:textColor="@color/textColorPrimary"
+        android:textSize="@dimen/text_size_normal"
+        android:textStyle="bold" />
 
-</FrameLayout>
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="@dimen/define_dimen_20"
+        android:layout_marginBottom="@dimen/define_dimen_20"
+        android:background="@color/dividerColor"/>
+
+
+    <TextView
+        android:id="@+id/tv_manage_revenue"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="@dimen/define_dimen_14"
+        android:paddingBottom="@dimen/define_dimen_14"
+        android:text="Doanh thu"
+        android:drawableTint="@color/textColorPrimary"
+        android:textColor="@color/textColorPrimary"
+        android:drawableStart="@drawable/ic_sign_out"
+        android:drawablePadding="@dimen/define_dimen_10"
+        android:textSize="@dimen/text_size_small" />
+
+
+    <TextView
+        android:id="@+id/tv_manage_customer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="@dimen/define_dimen_14"
+        android:paddingBottom="@dimen/define_dimen_14"
+        android:text="Quản lý khách hàng"
+        android:drawableTint="@color/textColorPrimary"
+        android:textColor="@color/textColorPrimary"
+        android:drawableStart="@drawable/ic_sign_out"
+        android:drawablePadding="@dimen/define_dimen_10"
+        android:textSize="@dimen/text_size_small" />
+
+    <TextView
+        android:id="@+id/tv_sign_out"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="@dimen/define_dimen_14"
+        android:paddingBottom="@dimen/define_dimen_14"
+        android:text="Đăng xuất"
+        android:drawableTint="@color/textColorPrimary"
+        android:textColor="@color/textColorPrimary"
+        android:drawableStart="@drawable/ic_sign_out"
+        android:drawablePadding="@dimen/define_dimen_10"
+        android:textSize="@dimen/text_size_small" />
+</LinearLayout>
