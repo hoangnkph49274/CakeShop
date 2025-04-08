@@ -77,10 +77,28 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
             }
         });
 
+        String formattedDate = "Ngày đặt: Không xác định";
+        try {
+            String ngayDatRaw = order.getNgayDat();
 
-        // Set order date
+            if (ngayDatRaw.matches("\\d+")) {
+                // Là chuỗi số (timestamp)
+                long timestamp = Long.parseLong(ngayDatRaw);
+                Date date = new Date(timestamp);
+                formattedDate = "Ngày đặt: " + dateFormat.format(date);
 
-        holder.tvOrderDate.setText("Ngày đặt: " + order.getNgayDat());
+            } else {
+                // Là chuỗi ngày ISO 8601 (ví dụ: "2025-04-04T13:35:26Z")
+                SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault());
+                isoFormat.setTimeZone(java.util.TimeZone.getTimeZone("UTC"));
+                Date date = isoFormat.parse(ngayDatRaw);
+                formattedDate = "Ngày đặt: " + dateFormat.format(date);
+            }
+        } catch (Exception e) {
+            e.printStackTrace(); // Ghi log nếu muốn
+        }
+        holder.tvOrderDate.setText(formattedDate);
+
 
         // Set order status
         holder.tvOrderStatus.setText("Trạng thái: " + order.getTrangThai());
@@ -104,7 +122,6 @@ public class OrderAdapter extends RecyclerView.Adapter<OrderAdapter.OrderViewHol
             intent.putExtras(bundle);
             context.startActivity(intent);
         });
-
     }
     private String formatCurrency(long amount) {
         DecimalFormatSymbols symbols = new DecimalFormatSymbols();

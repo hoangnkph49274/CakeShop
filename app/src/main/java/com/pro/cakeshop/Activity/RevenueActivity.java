@@ -162,21 +162,34 @@ public class RevenueActivity extends AppCompatActivity {
                                 continue; // Bỏ qua nếu không phải "đã giao"
                             }
 
-                            // Handle ngayDat - could be Long or String
+                            // Handle ngayDat - could be Long, String timestamp, or ISO String
                             Object dateObj = orderSnapshot.child("ngayDat").getValue();
                             long orderDate = 0;
+
                             if (dateObj instanceof Long) {
+                                // Case 1: Long timestamp
                                 orderDate = (Long) dateObj;
-                                donHang.setNgayDat(orderDate);
+                                donHang.setNgayDat(String.valueOf(orderDate));
                             } else if (dateObj instanceof String) {
-                                try {
-                                    String dateStr = (String) dateObj;
-                                    SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault());
-                                    Date date = isoFormat.parse(dateStr);
-                                    orderDate = date != null ? date.getTime() : 0;
-                                    donHang.setNgayDat(orderDate);
-                                } catch (Exception e) {
-                                    e.printStackTrace();
+                                String dateStr = (String) dateObj;
+
+                                if (dateStr.matches("\\d+")) {
+                                    // Case 2: String timestamp
+                                    orderDate = Long.parseLong(dateStr);
+                                    donHang.setNgayDat(dateStr);
+                                } else {
+                                    try {
+                                        // Case 3: ISO 8601 format
+                                        SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault());
+                                        isoFormat.setTimeZone(java.util.TimeZone.getTimeZone("UTC"));
+                                        Date date = isoFormat.parse(dateStr);
+                                        if (date != null) {
+                                            orderDate = date.getTime();
+                                            donHang.setNgayDat(dateStr);
+                                        }
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                    }
                                 }
                             }
 

@@ -60,7 +60,6 @@ public class DonHang implements Serializable {
 
     public String getNgayDat() {
         if (ngayDat instanceof Long) {
-            // Convert từ timestamp sang định dạng chuỗi ISO
             long timestamp = (Long) ngayDat;
             Date date = new Date(timestamp);
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault());
@@ -72,6 +71,46 @@ public class DonHang implements Serializable {
         }
     }
 
+    // Add a new method to get the date as a formatted string for display
+    public String getFormattedDate() {
+        SimpleDateFormat displayFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());
+
+        try {
+            if (ngayDat instanceof Long) {
+                long timestamp = (Long) ngayDat;
+                Date date = new Date(timestamp);
+                return displayFormat.format(date);
+            } else if (ngayDat instanceof String) {
+                // Try to parse the ISO string
+                SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault());
+                Date date = isoFormat.parse((String) ngayDat);
+                return displayFormat.format(date);
+            }
+        } catch (Exception e) {
+            // Return the raw value if parsing fails
+            return String.valueOf(ngayDat);
+        }
+
+        return "Không xác định";
+    }
+
+    // Add a method to get the date as a timestamp (for filtering)
+    public long getDateTimestamp() {
+        if (ngayDat instanceof Long) {
+            return (Long) ngayDat;
+        } else if (ngayDat instanceof String) {
+            try {
+                SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault());
+                Date date = isoFormat.parse((String) ngayDat);
+                return date.getTime();
+            } catch (Exception e) {
+                return 0;
+            }
+        }
+        return 0;
+    }
+
+    // Keep your current setter
     public void setNgayDat(Object ngayDat) {
         this.ngayDat = ngayDat;
     }

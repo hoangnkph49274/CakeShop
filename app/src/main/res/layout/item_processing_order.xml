@@ -75,7 +75,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:layout_marginEnd="4dp"
-                android:text="View Details"
+                android:text="Xem chi tiết"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
 
             <Button
@@ -84,7 +84,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:layout_marginStart="4dp"
-                android:text="Mark Completed" />
+                android:text="Đã giao" />
         </LinearLayout>
     </LinearLayout>
 </androidx.cardview.widget.CardView>

@@ -44,11 +44,27 @@ public class OrderHistoryAdapter extends RecyclerView.Adapter<OrderHistoryAdapte
         DonHang donHang = donHangList.get(position);
 
         holder.tvId.setText(donHang.getMaDonHang());
+        String formattedDate = "Không xác định";
+        try {
+            String ngayDatRaw = donHang.getNgayDat();
 
-        // Format date
-//        String date = dateFormat.format(new Date(donHang.getNgayDat()));
-        holder.tvDate.setText(donHang.getNgayDat());
+            if (ngayDatRaw.matches("\\d+")) {
+                // Là chuỗi số (timestamp)
+                long timestamp = Long.parseLong(ngayDatRaw);
+                Date date = new Date(timestamp);
+                formattedDate = dateFormat.format(date);
 
+            } else {
+                // Là chuỗi ngày ISO 8601 (ví dụ: "2025-04-04T13:35:26Z")
+                SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault());
+                isoFormat.setTimeZone(java.util.TimeZone.getTimeZone("UTC"));
+                Date date = isoFormat.parse(ngayDatRaw);
+                formattedDate = dateFormat.format(date);
+            }
+        } catch (Exception e) {
+            e.printStackTrace(); // Ghi log nếu muốn
+        }
+        holder.tvDate.setText(formattedDate);
 
 
         String totalAmount = formatCurrency((long) calculateTotalAmount(donHang)) + " " + Constant.CURRENCY;
