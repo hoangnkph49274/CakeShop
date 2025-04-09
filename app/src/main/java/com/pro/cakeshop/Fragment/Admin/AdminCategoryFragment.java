@@ -24,9 +24,11 @@ import com.google.firebase.database.ValueEventListener;
 import com.pro.cakeshop.R;
 import com.pro.cakeshop.Adapter.admin.CategoryAdminAdapter;
 import com.pro.cakeshop.Model.Loai;
+
+import java.text.Normalizer;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+import java.util.regex.Pattern;
 
 public class AdminCategoryFragment extends Fragment {
 
@@ -70,9 +72,38 @@ public class AdminCategoryFragment extends Fragment {
             public void afterTextChanged(Editable editable) {}
         });
 
+        // Thêm xử lý ẩn/hiện nút thêm khi cuộn
+        setupScrollBehavior();
+
         loadLoaiBanh();
 
         return view;
+    }
+
+    // Phương thức chuyển chuỗi có dấu thành không dấu
+    private String removeAccent(String s) {
+        String temp = Normalizer.normalize(s, Normalizer.Form.NFD);
+        Pattern pattern = Pattern.compile("\\p{InCombiningDiacriticalMarks}+");
+        return pattern.matcher(temp).replaceAll("").toLowerCase();
+    }
+
+    // Thiết lập xử lý cuộn để ẩn/hiện nút thêm
+    private void setupScrollBehavior() {
+        rcvData.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+
+                // Nếu đang vuốt xuống (dy > 0), ẩn nút thêm
+                if (dy > 0 && btnAdd.isShown()) {
+                    btnAdd.hide();
+                }
+                // Nếu đang vuốt lên (dy < 0), hiện nút thêm
+                else if (dy < 0 && !btnAdd.isShown()) {
+                    btnAdd.show();
+                }
+            }
+        });
     }
 
     private void loadLoaiBanh() {
@@ -168,8 +199,11 @@ public class AdminCategoryFragment extends Fragment {
 
     private void filterList(String keyword) {
         List<Loai> filteredList = new ArrayList<>();
+        String normalizedKeyword = removeAccent(keyword.toLowerCase());
+
         for (Loai loai : loaiList) {
-            if (loai.getTenLoai().toLowerCase().contains(keyword.toLowerCase())) {
+            String normalizedName = removeAccent(loai.getTenLoai().toLowerCase());
+            if (normalizedName.contains(normalizedKeyword)) {
                 filteredList.add(loai);
             }
         }

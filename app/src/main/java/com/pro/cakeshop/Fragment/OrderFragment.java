@@ -26,6 +26,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.pro.cakeshop.Activity.LoadingActivity;
+import com.pro.cakeshop.Activity.UserInfoActivity;
 import com.pro.cakeshop.Adapter.CartAdapter;
 import com.pro.cakeshop.Model.DonHang;
 import com.pro.cakeshop.Model.DonHangChiTiet;
@@ -283,7 +284,11 @@ public class OrderFragment extends Fragment {
         // Kiểm tra địa chỉ giao hàng
         String address = tvAddress.getText().toString();
         if (address.equals("Chưa có địa chỉ giao hàng")) {
-            Toast.makeText(getContext(), "Vui lòng chọn địa chỉ giao hàng", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "Vui lòng cập nhật thông tin địa chỉ giao hàng", Toast.LENGTH_SHORT).show();
+
+            // Redirect to UserInfoActivity
+            Intent intent = new Intent(getActivity(), UserInfoActivity.class);
+            startActivity(intent);
             return;
         }
 
@@ -329,7 +334,6 @@ public class OrderFragment extends Fragment {
         Intent intent = new Intent(getActivity(), LoadingActivity.class);
         intent.putExtras(bundle);
         startActivity(intent);
-
     }
 
 

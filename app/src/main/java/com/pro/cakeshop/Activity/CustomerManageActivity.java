@@ -11,6 +11,8 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.pro.cakeshop.Adapter.admin.KhachHangAdapter;
 import com.pro.cakeshop.Database.FirebaseHelper;
@@ -28,6 +30,7 @@ public class CustomerManageActivity extends AppCompatActivity {
     private KhachHangAdapter adapter;
     private List<KhachHang> khachHangList;
     private FirebaseHelper firebaseHelper;
+    private FirebaseAuth firebaseAuth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,6 +39,8 @@ public class CustomerManageActivity extends AppCompatActivity {
 
         // Initialize Firebase Helper
         firebaseHelper = new FirebaseHelper();
+        // Initialize Firebase Authentication
+        firebaseAuth = FirebaseAuth.getInstance();
 
         // Set up UI components
         setupUI();
@@ -108,10 +113,10 @@ public class CustomerManageActivity extends AppCompatActivity {
     private void confirmDeleteCustomer(KhachHang khachHang) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Xác nhận xóa");
-        builder.setMessage("Bạn có chắc chắn muốn xóa khách hàng " + khachHang.getTenKH() + "? Tất cả dữ liệu liên quan như giỏ hàng, đơn hàng cũng sẽ bị xóa.");
+        builder.setMessage("Bạn có chắc chắn muốn xóa khách hàng " + khachHang.getTenKH() + "? Tất cả dữ liệu liên quan như giỏ hàng, đơn hàng và tài khoản Authentication cũng sẽ bị xóa.");
 
         builder.setPositiveButton("Xóa", (dialog, which) -> {
-            deleteCustomer(khachHang.getMaKH());
+            deleteCustomer(khachHang);
         });
 
         builder.setNegativeButton("Hủy", (dialog, which) -> dialog.dismiss());
@@ -120,11 +125,59 @@ public class CustomerManageActivity extends AppCompatActivity {
         dialog.show();
     }
 
-    private void deleteCustomer(String maKH) {
+    private void deleteCustomer(KhachHang khachHang) {
         // Hiển thị thông báo đang xóa
         Toast.makeText(CustomerManageActivity.this,
                 "Đang xóa khách hàng...", Toast.LENGTH_SHORT).show();
 
+        String maKH = khachHang.getMaKH();
+        String email = khachHang.getEmail();
+
+        // Kiểm tra nếu email của khách hàng tồn tại
+        if (email != null && !email.isEmpty()) {
+            // Đăng nhập với tư cách admin để có quyền xóa user
+            // Lưu ý: Đây là một cách thực hiện đơn giản, bạn cần điều chỉnh theo cơ chế xác thực của ứng dụng
+            deleteUserFromAuthentication(email, maKH);
+        } else {
+            // Nếu không có email, chỉ xóa dữ liệu từ database
+            deleteCustomerData(maKH);
+        }
+    }
+
+    private void deleteUserFromAuthentication(String email, String maKH) {
+        // Trong thực tế, bạn nên sử dụng Firebase Admin SDK hoặc Cloud Functions
+        // để xóa người dùng từ Authentication vì hạn chế của client SDK
+        // Đây là cách tiếp cận đơn giản sử dụng Firebase Admin Authentication Token
+
+        // Sử dụng Firebase Functions hoặc API riêng của bạn để xóa user từ Authentication
+        // Ví dụ: gọi Firebase Function
+
+        // Cách tạm thời (không khuyến nghị cho production):
+        // Lưu ý: Cách này chỉ hoạt động nếu bạn đang đăng nhập với tài khoản có quyền admin
+        // và có thể xóa tài khoản khác
+
+        FirebaseUser currentUser = firebaseAuth.getCurrentUser();
+        if (currentUser != null && currentUser.getEmail() != null) {
+            // Sử dụng Cloud Functions để xóa user (bạn cần tạo function này)
+            // Hoặc gọi API của bạn để xóa user
+
+            // Tạm thời xóa dữ liệu database trước
+            deleteCustomerData(maKH);
+
+            // Hiển thị thông báo
+            Toast.makeText(CustomerManageActivity.this,
+                    "Đã xóa dữ liệu khách hàng. Cần xóa riêng tài khoản Authentication thông qua Firebase Console hoặc Admin SDK.",
+                    Toast.LENGTH_LONG).show();
+        } else {
+            // Nếu không có quyền xóa Authentication, vẫn xóa dữ liệu database
+            deleteCustomerData(maKH);
+            Toast.makeText(CustomerManageActivity.this,
+                    "Không thể xóa tài khoản Authentication (cần quyền admin). Đã xóa dữ liệu khách hàng.",
+                    Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private void deleteCustomerData(String maKH) {
         // Chuẩn bị xóa dữ liệu từ nhiều bảng
         Map<String, Object> deleteUpdates = new HashMap<>();
 

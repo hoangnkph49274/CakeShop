@@ -27,10 +27,12 @@ import com.pro.cakeshop.Model.Banh;
 import com.pro.cakeshop.Model.Loai;
 import com.pro.cakeshop.R;
 
+import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 public class AdminProductFragment extends Fragment {
     private RecyclerView recyclerView;
@@ -56,6 +58,7 @@ public class AdminProductFragment extends Fragment {
         loadProducts();
         setupSearchFunctionality();
         setupAddButton();
+        setupScrollBehavior();
         return view;
     }
 
@@ -68,8 +71,26 @@ public class AdminProductFragment extends Fragment {
 
     private void setupRecyclerView() {
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        productAdapter = new ProductAdapter(productList,loaiMap, this);
+        productAdapter = new ProductAdapter(productList, loaiMap, this);
         recyclerView.setAdapter(productAdapter);
+    }
+
+    private void setupScrollBehavior() {
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+
+                // Nếu đang vuốt xuống (dy > 0), ẩn nút thêm
+                if (dy > 0 && btnAdd.isShown()) {
+                    btnAdd.hide();
+                }
+                // Nếu đang vuốt lên (dy < 0), hiện nút thêm
+                else if (dy < 0 && !btnAdd.isShown()) {
+                    btnAdd.show();
+                }
+            }
+        });
     }
 
     private void loadProducts() {
@@ -112,10 +133,20 @@ public class AdminProductFragment extends Fragment {
         });
     }
 
+    // Phương thức chuyển chuỗi có dấu thành không dấu
+    private String removeAccent(String s) {
+        String temp = Normalizer.normalize(s, Normalizer.Form.NFD);
+        Pattern pattern = Pattern.compile("\\p{InCombiningDiacriticalMarks}+");
+        return pattern.matcher(temp).replaceAll("").toLowerCase();
+    }
+
     private void filterProducts(String query) {
         List<Banh> filteredList = new ArrayList<>();
+        String normalizedQuery = removeAccent(query.toLowerCase());
+
         for (Banh banh : productList) {
-            if (banh.getTenBanh().toLowerCase().contains(query.toLowerCase())) {
+            String normalizedName = removeAccent(banh.getTenBanh().toLowerCase());
+            if (normalizedName.contains(normalizedQuery)) {
                 filteredList.add(banh);
             }
         }
@@ -128,7 +159,6 @@ public class AdminProductFragment extends Fragment {
             new android.os.Handler().postDelayed(this::showAddProductDialog, 1000); // Đợi 1 giây trước khi mở hộp thoại
         });
     }
-
 
     private void loadLoaiList() {
         firebaseHelper.getListLoai(new FirebaseHelper.FirebaseCallback<List<Loai>>() {
@@ -153,8 +183,6 @@ public class AdminProductFragment extends Fragment {
             }
         });
     }
-
-
 
     private void showAddProductDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
@@ -209,7 +237,6 @@ public class AdminProductFragment extends Fragment {
         builder.show();
     }
 
-
     // Phương thức trợ giúp để lấy mã loại từ tên loại
     private String getLoaiMaByTen(String tenLoai) {
         for (Map.Entry<String, String> entry : loaiMap.entrySet()) {
@@ -257,6 +284,7 @@ public class AdminProductFragment extends Fragment {
             }
         });
     }
+
     public void deleteProduct(Banh banh) {
         // Confirm delete dialog
         new AlertDialog.Builder(requireContext())

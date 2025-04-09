@@ -9,6 +9,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.FrameLayout; // Added FrameLayout import
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.Toast;
@@ -24,9 +25,10 @@ public class LoginActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
     private LinearLayout layoutRegister;
     private ProgressBar progressBar;
+    private FrameLayout loadingOverlay; // Added loading overlay
 
-        private Handler handler;
-        private Runnable timeoutRunnable;
+    private Handler handler;
+    private Runnable timeoutRunnable;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,6 +39,7 @@ public class LoginActivity extends AppCompatActivity {
         etPassword = findViewById(com.pro.cakeshop.R.id.etPassword);
         btnLogin = findViewById(com.pro.cakeshop.R.id.btnLogin);
         progressBar = findViewById(com.pro.cakeshop.R.id.progressBar);
+        loadingOverlay = findViewById(com.pro.cakeshop.R.id.loading_overlay); // Initialize overlay
         mAuth = FirebaseAuth.getInstance();
         layoutRegister = findViewById(com.pro.cakeshop.R.id.layout_register);
 
@@ -45,8 +48,20 @@ public class LoginActivity extends AppCompatActivity {
             startActivity(new Intent(this, RegisterActivity.class));
         });
 
-
         btnLogin.setOnClickListener(v -> loginUser());
+    }
+
+    // Method to show loading state
+    private void showLoading(boolean isLoading) {
+        if (isLoading) {
+            progressBar.setVisibility(View.VISIBLE);
+            loadingOverlay.setVisibility(View.VISIBLE); // Show the overlay
+            btnLogin.setEnabled(false);
+        } else {
+            progressBar.setVisibility(View.GONE);
+            loadingOverlay.setVisibility(View.GONE); // Hide the overlay
+            btnLogin.setEnabled(true);
+        }
     }
 
     private void loginUser() {
@@ -67,32 +82,29 @@ public class LoginActivity extends AppCompatActivity {
             return;
         }
 
+        showLoading(true); // Show loading overlay and disable interactions
 
-        progressBar.setVisibility(View.VISIBLE); // Hiện loading
-        btnLogin.setEnabled(false);
         timeoutRunnable = () -> {
-            progressBar.setVisibility(View.GONE);
-            btnLogin.setEnabled(true);
+            showLoading(false); // Hide loading overlay and enable interactions
             Toast.makeText(LoginActivity.this, "Lỗi: Kết nối chậm, vui lòng thử lại!", Toast.LENGTH_LONG).show();
         };
         handler.postDelayed(timeoutRunnable, 8000);
+
         mAuth.signInWithEmailAndPassword(email, password)
                 .addOnCompleteListener(task -> {
                     handler.removeCallbacks(timeoutRunnable);
-                    progressBar.setVisibility(View.GONE); // Ẩn loading
-                    btnLogin.setEnabled(true);
+                    showLoading(false); // Hide loading overlay and enable interactions
+
                     if (task.isSuccessful()) {
                         FirebaseUser user = mAuth.getCurrentUser();
-
                         checkUserRole(user);
                     } else {
                         Exception e = task.getException();
                         if (e != null) {
-                            Toast.makeText(this, "Lỗi đăng nhập: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                            Toast.makeText(this, "Lỗi đăng nhập: sai tài khoản hoặc mật khẩu", Toast.LENGTH_LONG).show();
                         }
                     }
                 });
-
     }
 
     private void checkUserRole(FirebaseUser user) {
