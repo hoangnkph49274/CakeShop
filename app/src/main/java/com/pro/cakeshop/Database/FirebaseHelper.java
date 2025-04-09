@@ -141,7 +141,36 @@ public class FirebaseHelper {
             }
         });
     }
+    // Lấy danh sách đơn hàng (lịch sử mua hàng) theo mã khách hàng
+    public void getLichSuDonHangByMaKH(String maKH, FirebaseCallback<List<DonHang>> callback) {
+        // Access the donHang/{maKH} path directly instead of querying by maKH field
+        getDonHangReference().child(maKH).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                List<DonHang> listDonHang = new ArrayList<>();
+                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
+                    DonHang donHang = dataSnapshot.getValue(DonHang.class);
+                    if (donHang != null) {
+                        // Make sure maDonHang is set if it's not in the database object
+                        if (donHang.getMaDonHang() == null) {
+                            donHang.setMaDonHang(dataSnapshot.getKey());
+                        }
+                        // Make sure maKH is set if it's not in the database object
+                        if (donHang.getMaKH() == null) {
+                            donHang.setMaKH(maKH);
+                        }
+                        listDonHang.add(donHang);
+                    }
+                }
+                callback.onSuccess(listDonHang);
+            }
 
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                callback.onFailure(error.getMessage());
+            }
+        });
+    }
     // Lấy danh sách loại bánh
     public void getListLoai(FirebaseCallback<List<Loai>> callback) {
         getLoaiReference().addListenerForSingleValueEvent(new ValueEventListener() {
@@ -165,24 +194,20 @@ public class FirebaseHelper {
     }
 
     // Lấy danh sách đơn hàng cho một khách hàng cụ thể
-    public void getListDonHangByKhachHang(String maKH, FirebaseCallback<List<DonHang>> callback) {
-        getDonHangReference().child(maKH).addListenerForSingleValueEvent(new ValueEventListener() {
+    public void getListDonHangByKhachHang(String userId, FirebaseCallback<List<DonHang>> callback) {
+        DatabaseReference ordersRef = FirebaseDatabase.getInstance().getReference("orders");
+
+        ordersRef.orderByChild("maKH").equalTo(userId).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                List<DonHang> listDonHang = new ArrayList<>();
-                for (DataSnapshot dataSnapshot : snapshot.getChildren()) {
-                    DonHang donHang = dataSnapshot.getValue(DonHang.class);
-                    if (donHang != null) {
-                        // Đảm bảo đơn hàng có mã đơn hàng
-                        donHang.setMaDonHang(dataSnapshot.getKey());
-                        // Đảm bảo đơn hàng có mã khách hàng
-                        donHang.setMaKH(maKH);
-
-                        // Chi tiết đơn hàng đã được Firebase tự động mapping dựa trên cấu trúc JSON
-                        listDonHang.add(donHang);
+                List<DonHang> orders = new ArrayList<>();
+                for (DataSnapshot orderSnapshot : snapshot.getChildren()) {
+                    DonHang order = orderSnapshot.getValue(DonHang.class);
+                    if (order != null) {
+                        orders.add(order);
                     }
                 }
-                callback.onSuccess(listDonHang);
+                callback.onSuccess(orders);
             }
 
             @Override
@@ -191,6 +216,7 @@ public class FirebaseHelper {
             }
         });
     }
+
 
     // Lấy tất cả đơn hàng từ tất cả khách hàng (cho admin)
     public void getAllDonHang(FirebaseCallback<List<DonHang>> callback) {
