@@ -13,6 +13,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 
+import com.pro.cakeshop.Activity.CustomerManageActivity;
 import com.pro.cakeshop.Activity.RevenueActivity;
 import com.pro.cakeshop.LoginActivity;
 import com.pro.cakeshop.R;
@@ -73,7 +74,7 @@ public class AdminSettingFragment extends Fragment {
         tvManageCustomer.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                navigateToCustomerManagement();
+                navigateToCustomerManagement();
             }
         });
 
@@ -96,19 +97,15 @@ public class AdminSettingFragment extends Fragment {
     }
 
 
-//    private void navigateToCustomerManagement() {
-//        // Replace current fragment with CustomerManagementFragment
-//        try {
-//            AdminCustomerFragment customerFragment = new AdminCustomerFragment();
-//            getParentFragmentManager().beginTransaction()
-//                    .replace(R.id.fragment_container, customerFragment)
-//                    .addToBackStack(null)
-//                    .commit();
-//        } catch (Exception e) {
-//            Toast.makeText(getContext(), "Không thể mở trang quản lý khách hàng", Toast.LENGTH_SHORT).show();
-//            e.printStackTrace();
-//        }
-//    }
+    private void navigateToCustomerManagement() {
+        // Replace current fragment with CustomerManagementFragment
+        if (getActivity() != null) {
+            Intent intent = new Intent(getActivity(), CustomerManageActivity.class);
+            startActivity(intent);
+        } else {
+            Toast.makeText(getContext(), "Lỗi: Không thể mở CustomerManageActivity", Toast.LENGTH_SHORT).show();
+        }
+    }
 
     private void signOut() {
 //        // Clear user session data
