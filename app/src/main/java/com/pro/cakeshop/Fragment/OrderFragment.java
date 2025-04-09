@@ -47,7 +47,7 @@ public class OrderFragment extends Fragment {
     private TextView checkoutButton;
     private int totalAmount = 0;
     private TextView tvAddress,tvName,tvSdt;
-    private String userId;  // Cập nhật từ "0" thành "KH002" như trong ProductDetailActivity
+    private String userId;
 
     @Nullable
     @Override
