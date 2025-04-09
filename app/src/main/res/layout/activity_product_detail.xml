@@ -132,43 +132,7 @@
                     </LinearLayout>
                 </RelativeLayout>
 
-                <RelativeLayout
-                    android:id="@+id/layout_rating_and_review"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/define_dimen_12">
 
-                    <ImageView
-                        android:id="@+id/img_star"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_centerVertical="true"
-                        android:src="@drawable/ic_star_yellow" />
-
-                    <TextView
-                        android:id="@+id/tv_rate"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_centerVertical="true"
-                        android:layout_marginStart="@dimen/define_dimen_4"
-                        android:layout_toEndOf="@+id/img_star"
-                        android:text="4.9"
-                        android:textColor="@color/textColorHeading"
-                        android:textSize="@dimen/text_size_xsmall"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/tv_count_review"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_centerVertical="true"
-                        android:layout_marginStart="@dimen/define_dimen_5"
-                        android:layout_toEndOf="@+id/tv_rate"
-                        android:text="(23)"
-                        android:textColor="@color/textColorHeading"
-                        android:textSize="@dimen/text_size_xsmall" />
-
-                </RelativeLayout>
 
             </LinearLayout>
 
